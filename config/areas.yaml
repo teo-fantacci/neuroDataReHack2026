@@ -1,0 +1,31 @@
+# Target brain regions (Beryl parcellation, as used by IBL).
+#
+# The candidate visual->motor axis comes from the literature review in
+# docs/project_notes/ (IBL et al. 2025, Nature 645:177-189).
+# NOTHING here is frozen yet: Phase 1 prunes this list by *simultaneous*
+# co-recording yields and writes the chosen set into `selected`.
+
+candidate_axis:
+  - VISp     # primary visual cortex
+  - LGd      # dorsal lateral geniculate (visual thalamus)
+  - LP       # lateral posterior thalamus (pulvinar)
+  - MOs      # secondary motor cortex
+  - CP       # caudoputamen
+  - SCm      # superior colliculus, motor-related
+  - MRN      # midbrain reticular nucleus
+  - GRN      # gigantocellular reticular nucleus (hindbrain)
+
+selection:
+  # A region counts as "present" in a session only if it has at least this many
+  # good units on a single probe insertion. Single-trial methods need real
+  # populations, not 3 neurons.
+  min_units_per_region: 20
+  # We need >= this many target regions recorded SIMULTANEOUSLY in one session.
+  min_regions_per_session: 2
+  # Minimum usable trials after the paper's trial mask.
+  min_trials: 200
+
+# Frozen at the end of Phase 1. Leave empty until then.
+selected:
+  eid: null
+  regions: []

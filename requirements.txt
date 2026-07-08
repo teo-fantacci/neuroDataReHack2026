@@ -1,0 +1,35 @@
+# NeuroDataReHack 2026 — IBL decision dynamics
+# CPU-first. Python 3.11. Install into the `neurodatarehack` conda env:
+#     conda activate neurodatarehack && pip install -r requirements.txt
+
+# ---- Core scientific stack ----
+numpy
+scipy
+scikit-learn
+pandas
+matplotlib
+pyyaml
+
+# ---- Notebook ----
+jupyter
+ipykernel
+
+# ---- IBL data access ----
+# ONE-api ships the public openalyx defaults; no account needed (verified 2026-07-08).
+ONE-api
+# brainwidemap is NOT on PyPI; pulls ibllib/brainbox as dependencies.
+git+https://github.com/int-brain-lab/paper-brain-wide-map
+
+# ---- Phase 0/2: discrete state sequences ----
+# hmmlearn 0.3.3 provides PoissonHMM, the right emission model for spike counts.
+# This deliberately avoids `ssm`, which is Cython-built, effectively unmaintained,
+# and pins old numpy. See docs/worklog/2026-07-08_phase0-setup.md.
+hmmlearn>=0.3.0
+
+# ---- Phase 2: rSLDS (NOT installed yet — build risk, deferred) ----
+# ssm @ git+https://github.com/lindermanlab/ssm
+# dynamax   # JAX fallback for HMM/LGSSM if ssm cannot be built
+
+# ---- Phase 3: geometry (deferred until Phase 0/1 are green) ----
+# phate
+# cebra     # pulls torch; heavy

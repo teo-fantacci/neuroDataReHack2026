@@ -1,0 +1,41 @@
+# Analysis parameters. Anything a script or notebook hard-codes belongs here instead.
+
+data:
+  # Where ONE caches downloaded spike sorting. `null` -> ONE default (~/Downloads/ONE).
+  # Set to an absolute path if you want the cache on a bigger disk.
+  one_cache_dir: null
+
+  # Pinned so results are reproducible and match the published paper.
+  # bwm_units() asserts the unit-UUID hash against this freeze.
+  paper_freeze: "2023_12_bwm_release"
+  # Aggregate tables must come from the tag that MATCHES the freeze above.
+  # The installed brainwidemap defaults to 2026_Q2, which does NOT match.
+  # See docs/worklog/2026-07-08_phase0-setup.md.
+  aggregate_tag: "2024_Q2_IBL_et_al_BWM"
+
+  # Unit quality. 1.0 = passes all IBL quality metrics ("good" units).
+  min_qc: 1.0
+
+binning:
+  # Event to align on. Prong 1 is defined from stimulus onset.
+  align_event: "stimOn_times"
+  pre_s: 0.2          # seconds before the event
+  post_s: 0.8         # seconds after the event
+  bin_size_s: 0.02    # 20 ms bins
+  # Gaussian smoothing sigma in bins; 0 = no smoothing.
+  # NOTE: HMM with Poisson emissions needs RAW COUNTS -> do not smooth for the HMM.
+  # Smoothing is for geometry (PHATE/CEBRA) and for plotting only.
+  smooth_sigma_bins: 0
+
+trials:
+  # Passed to brainwidemap.load_trials_and_mask; these are the paper's own criteria.
+  min_rt_s: 0.08
+  max_rt_s: 2.0
+
+hmm:
+  n_states: 4         # Phase 0 smoke-test value; Phase 2 selects K by cross-validated LL
+  n_iter: 100
+  cv_folds: 5
+  candidate_states: [2, 3, 4, 5, 6, 7, 8]
+
+random_seed: 0

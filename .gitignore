@@ -1,0 +1,27 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+
+# ---- Data (never commit; ONE caches to disk, can reach many GB) ----
+# Leading slash = repo root only. WITHOUT it, this pattern also swallows src/data/.
+/data/
+*.pqt
+*.npy
+*.nwb
+
+# ---- Results: keep the folder, ignore heavy/generated artefacts ----
+results/**
+!results/.gitkeep
+!results/**/*.md
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
