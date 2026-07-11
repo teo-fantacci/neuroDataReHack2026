@@ -12,6 +12,7 @@ scientific plan and does not change.
 
 | Date | Entry | Summary |
 |---|---|---|
+| 2026-07-08 | [Phase 1 + SHIELD](2026-07-08_phase1-and-shield.md) | Area selection sweep; 3-region ceiling is the *axis* not IBL; SHIELD is public+streamable; dataset-pivot recommendation |
 | 2026-07-08 | [Phase 0 setup](2026-07-08_phase0-setup.md) | Env, public openalyx access, two `brainwidemap` bugs, repo scaffold, download budget |
 
 ## Standing decisions
@@ -27,5 +28,7 @@ Carried from `project_notes/`, plus what we've settled since:
 | **`ssm` deferred to Phase 2; only rSLDS needs it** | 2026-07-08 | [entry](2026-07-08_phase0-setup.md) |
 | **Aggregate tables pinned to `2024_Q2_IBL_et_al_BWM`** | 2026-07-08 | [entry](2026-07-08_phase0-setup.md) |
 | **No IBL account needed; openalyx is public** | 2026-07-08 | [entry](2026-07-08_phase0-setup.md) |
-| Region set frozen in `config/areas.yaml` | **open** — Phase 1 | — |
+| **SHIELD 001051 is public, streamable (0.36 MB metadata), 17 areas ≥50 units/session** | 2026-07-08 | [entry](2026-07-08_phase1-and-shield.md) |
+| **IBL best axis triplet = {MRN, SCm, VISp}, 5 replicate sessions** | 2026-07-08 | [entry](2026-07-08_phase1-and-shield.md) |
+| Region set frozen in `config/areas.yaml` | **open** — human's call | [entry](2026-07-08_phase1-and-shield.md) |
 | GPU availability at Janelia | **open** — ask organizers | `project_notes/Janelia pre-hack meeting.md` |
