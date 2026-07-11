@@ -1,9 +1,10 @@
 # Analysis parameters. Anything a script or notebook hard-codes belongs here instead.
 
 data:
-  # Where ONE caches downloaded spike sorting. `null` -> ONE default (~/Downloads/ONE).
-  # Set to an absolute path if you want the cache on a bigger disk.
-  one_cache_dir: null
+  # Where ONE caches downloaded spike sorting. Kept INSIDE the repo (data/ONE) so the
+  # data is visible next to the code; data/ is gitignored. Relative to the repo root.
+  # Set to an absolute path to move the cache to a bigger disk.
+  one_cache_dir: "data/ONE"
 
   # Pinned so results are reproducible and match the published paper.
   # bwm_units() asserts the unit-UUID hash against this freeze.

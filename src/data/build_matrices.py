@@ -111,6 +111,143 @@ def stack_for_hmmlearn(counts: np.ndarray) -> tuple[np.ndarray, list[int]]:
     return X, lengths
 
 
+def region_tensor_from_probes(
+    probe_loads: list[dict],
+    region: str,
+    event_times: np.ndarray,
+    *,
+    pre_s: float,
+    post_s: float,
+    bin_size_s: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Pool one Beryl region's units across every probe of a session.
+
+    Both probes of a session are recorded simultaneously and share the same trial
+    events, so their units concatenate cleanly along the neuron axis.
+
+    Parameters
+    ----------
+    probe_loads
+        One dict per probe, each with keys ``spikes`` (dict from ``load_good_units``)
+        and ``clusters`` (DataFrame with a ``Beryl`` column added by the caller).
+    region
+        Beryl acronym to select.
+    event_times
+        Per-trial alignment times (already masked, no NaN).
+
+    Returns
+    -------
+    counts : (n_trials, n_bins, n_units_total) int32
+    bin_centers : (n_bins,)
+    """
+    blocks = []
+    bin_centers = None
+    for load in probe_loads:
+        clusters = load["clusters"]
+        spikes = load["spikes"]
+        unit_idx = np.flatnonzero((clusters["Beryl"] == region).values)
+        if unit_idx.size == 0:
+            continue
+        keep = np.isin(spikes["clusters"], unit_idx)
+        remap = -np.ones(clusters.shape[0], dtype=np.int64)
+        remap[unit_idx] = np.arange(unit_idx.size)
+        counts, bin_centers = bin_spikes_by_event(
+            spike_times=spikes["times"][keep],
+            spike_clusters=remap[spikes["clusters"][keep]],
+            n_clusters=unit_idx.size,
+            event_times=event_times,
+            pre_s=pre_s, post_s=post_s, bin_size_s=bin_size_s,
+        )
+        blocks.append(counts)
+
+    if not blocks:
+        raise ValueError(f"No units found for region {region!r} on any probe.")
+    return np.concatenate(blocks, axis=2), bin_centers
+
+
+def region_event_spikes(
+    probe_loads: list[dict],
+    region: str,
+    event_times: np.ndarray,
+    *,
+    pre_s: float,
+    post_s: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Collect in-window spike times for a region, for **dot raster** plots.
+
+    Unlike ``region_tensor_from_probes`` (which bins), this keeps exact spike times so a
+    raster shows individual spikes. Units are numbered globally across probes.
+
+    Returns three parallel flat arrays, one entry per spike:
+    ``trial_idx``, ``unit_idx``, ``t_rel`` (seconds relative to the event).
+    """
+    trial_idx, unit_idx, t_rel = [], [], []
+    unit_offset = 0
+    for load in probe_loads:
+        clusters, spikes = load["clusters"], load["spikes"]
+        uidx = np.flatnonzero((clusters["Beryl"] == region).values)
+        if uidx.size == 0:
+            continue
+        remap = -np.ones(clusters.shape[0], dtype=np.int64)
+        remap[uidx] = np.arange(uidx.size) + unit_offset
+        keep = np.isin(spikes["clusters"], uidx)
+        st = spikes["times"][keep]
+        sc = remap[spikes["clusters"][keep]]
+        starts = np.searchsorted(st, event_times - pre_s, side="left")
+        stops = np.searchsorted(st, event_times + post_s, side="right")
+        for i, (lo, hi) in enumerate(zip(starts, stops)):
+            if hi <= lo:
+                continue
+            trial_idx.append(np.full(hi - lo, i))
+            unit_idx.append(sc[lo:hi])
+            t_rel.append(st[lo:hi] - event_times[i])
+        unit_offset += uidx.size
+
+    if not trial_idx:
+        raise ValueError(f"No units found for region {region!r} on any probe.")
+    return (
+        np.concatenate(trial_idx),
+        np.concatenate(unit_idx),
+        np.concatenate(t_rel),
+    )
+
+
+def firing_rate_table(counts: np.ndarray, bin_size_s: float):
+    """Per-unit firing statistics from a (trials x time x neurons) count tensor.
+
+    Answers 'are these units actually active, and how were they doing?'. Returns a
+    pandas DataFrame with one row per unit:
+
+    * ``mean_rate_hz``     — mean firing rate over the whole window
+    * ``spikes_per_trial`` — mean spike count per trial
+    * ``frac_trials_active`` — fraction of trials with >= 1 spike (0 = often silent)
+    * ``peak_rate_hz``     — peak of the trial-averaged PSTH
+    * ``fano``             — Fano factor of per-trial counts (variance / mean; ~1 Poisson)
+    """
+    import pandas as pd
+
+    n_trials, n_bins, n_units = counts.shape
+    per_trial = counts.sum(axis=1)                    # (trials, units) total spikes/trial
+    window_s = n_bins * bin_size_s
+
+    mean_count = per_trial.mean(axis=0)               # per unit
+    mean_rate = mean_count / window_s
+    frac_active = (per_trial > 0).mean(axis=0)
+    psth = counts.mean(axis=0) / bin_size_s           # (bins, units)
+    peak_rate = psth.max(axis=0)
+    var = per_trial.var(axis=0)
+    fano = np.divide(var, mean_count, out=np.full(n_units, np.nan), where=mean_count > 0)
+
+    return pd.DataFrame({
+        "unit": np.arange(n_units),
+        "mean_rate_hz": np.round(mean_rate, 3),
+        "spikes_per_trial": np.round(mean_count, 3),
+        "frac_trials_active": np.round(frac_active, 3),
+        "peak_rate_hz": np.round(peak_rate, 2),
+        "fano": np.round(fano, 2),
+    }).sort_values("mean_rate_hz", ascending=False).reset_index(drop=True)
+
+
 def drop_silent_units(
     counts: np.ndarray, min_total_spikes: int = 1
 ) -> tuple[np.ndarray, np.ndarray]:
