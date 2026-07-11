@@ -12,6 +12,7 @@ scientific plan and does not change.
 
 | Date | Entry | Summary |
 |---|---|---|
+| 2026-07-11 | [Phase 2 + handoff](2026-07-11_phase2-and-handoff.md) | HMM cross-validation (CV picks K=2); colourblind viz; data-in-repo; cross-machine handoff & why chat history is machine-local |
 | 2026-07-08 | [Phase 1 + SHIELD](2026-07-08_phase1-and-shield.md) | Area selection sweep; 3-region ceiling is the *axis* not IBL; SHIELD is public+streamable; dataset-pivot recommendation |
 | 2026-07-08 | [Phase 0 setup](2026-07-08_phase0-setup.md) | Env, public openalyx access, two `brainwidemap` bugs, repo scaffold, download budget |
 
