@@ -165,6 +165,47 @@ def region_tensor_from_probes(
     return np.concatenate(blocks, axis=2), bin_centers
 
 
+def region_spike_trains(
+    probe_loads: list[dict],
+    region: str,
+    *,
+    t_start: float | None = None,
+    t_stop: float | None = None,
+) -> dict[int, np.ndarray]:
+    """Full spike train of each unit of ``region``, keyed by its **tensor column index**.
+
+    Companion to :func:`region_tensor_from_probes`, and it walks the probes and units in
+    exactly the same order, so key ``j`` here is column ``j`` of that function's neuron
+    axis. That alignment is the whole point: a per-unit score (e.g. multiscale relevance)
+    computed from these trains can be used to index the tensor directly. Recomputing the
+    unit order independently is how you silently keep the wrong half of the population.
+
+    Unlike the tensor builders this does **not** cut the train into trial windows -- it
+    returns continuous session time, which is what a multi-timescale statistic needs.
+    ``t_start``/``t_stop`` optionally restrict it to the task period.
+    """
+    trains: dict[int, np.ndarray] = {}
+    offset = 0
+    for load in probe_loads:
+        clusters, spikes = load["clusters"], load["spikes"]
+        unit_idx = np.flatnonzero((clusters["Beryl"] == region).values)
+        if unit_idx.size == 0:
+            continue                      # skipped here AND in region_tensor_from_probes
+        st, sc = np.asarray(spikes["times"]), np.asarray(spikes["clusters"])
+        if t_start is not None or t_stop is not None:
+            lo = -np.inf if t_start is None else t_start
+            hi = np.inf if t_stop is None else t_stop
+            keep = (st >= lo) & (st < hi)
+            st, sc = st[keep], sc[keep]
+        for j, u in enumerate(unit_idx):
+            trains[offset + j] = st[sc == u]
+        offset += unit_idx.size
+
+    if not trains:
+        raise ValueError(f"No units found for region {region!r} on any probe.")
+    return trains
+
+
 def region_event_spikes(
     probe_loads: list[dict],
     region: str,
@@ -256,8 +297,68 @@ def drop_silent_units(
     A unit that never fires inside the window contributes nothing but can make the
     Poisson HMM's rate parameter degenerate (log of zero).
 
+    NOTE: this is the *minimum* safety net, not an activity criterion. For HMM fitting use
+    ``select_active_units`` — see the rationale there.
+
     Returns the trimmed tensor and the integer indices of the units kept.
     """
     totals = counts.sum(axis=(0, 1))
     keep = np.flatnonzero(totals >= min_total_spikes)
+    return counts[:, :, keep], keep
+
+
+def select_active_units(
+    counts: np.ndarray,
+    bin_size_s: float,
+    *,
+    min_rate_hz: float = 1.0,
+    min_spikes_per_trial: float = 0.0,
+    min_frac_trials_active: float = 0.0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Keep only units active enough to *support* a Poisson-HMM state. Returns (counts, kept).
+
+    Why a rate threshold matters for the HMM specifically
+    -----------------------------------------------------
+    IBL "good" units are **well-isolated, not active** (`qc == 1.0` is a sorting-quality
+    criterion). VISp here contains units firing ~0.004 Hz — a handful of spikes across the
+    whole session. Keeping them is not neutral:
+
+    * **They add emission dimensions without adding information.** A Poisson HMM estimates
+      one rate per (state x neuron). A near-silent neuron contributes K parameters that are
+      fit to a few spikes, i.e. almost pure noise.
+    * **They push rates toward zero.** lambda ~= 0 is a degenerate MLE: it assigns
+      probability 0 (log-likelihood -inf) to any count > 0. This is precisely what destroyed
+      our first cross-validation (see docs/worklog/2026-07-12). Flooring lambda prevents the
+      -inf, but it does not make those units *informative*.
+    * **They dilute the likelihood.** Held-out log-likelihood is summed over neurons, so
+      dozens of near-silent units spend the score on trivially-predictable zeros and mask the
+      contribution of the units that actually carry the dynamics. This is a plausible reason
+      the CV curve gains so little per added state.
+
+    The threshold is a modelling choice, not a truth: it must be reported, and the result
+    should be checked for sensitivity to it (try 0.5 / 1 / 2 Hz).
+
+    Parameters
+    ----------
+    min_rate_hz
+        Mean in-window firing rate. 1.0 Hz is a common, mild floor for population models.
+    min_spikes_per_trial
+        Optional: mean spikes per trial (a unit can pass a rate cut yet be absent from most
+        trials).
+    min_frac_trials_active
+        Optional: fraction of trials with >= 1 spike. Guards against a unit whose rate comes
+        from bursting on a few trials.
+    """
+    n_trials, n_bins, n_units = counts.shape
+    window_s = n_bins * bin_size_s
+
+    spikes_per_trial = counts.sum(axis=(0, 1)) / n_trials
+    rate_hz = spikes_per_trial / window_s
+    frac_active = (counts.sum(axis=1) > 0).mean(axis=0)
+
+    keep = np.flatnonzero(
+        (rate_hz >= min_rate_hz)
+        & (spikes_per_trial >= min_spikes_per_trial)
+        & (frac_active >= min_frac_trials_active)
+    )
     return counts[:, :, keep], keep

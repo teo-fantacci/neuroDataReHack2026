@@ -35,9 +35,42 @@ OKABE_ITO = [
 SEQUENTIAL = "cividis"   # heatmaps of a single non-negative quantity
 DIVERGING = "RdBu_r"     # signed quantities (e.g. net flux); red-blue is CVD-safe here
 
+# Total width of the black outline stroked under every line/marker. Our lines are ~1.8-2.0
+# wide, so ~3.0 leaves a ~0.5 pt dark edge each side: enough to make yellow readable on
+# white, not so much that thin lines turn black.
+OUTLINE_LW = 3.0
+
+
+def stroke(linewidth: float = OUTLINE_LW, foreground: str = "black"):
+    """Black outline for ONE line: ``ax.plot(..., path_effects=stroke())``.
+
+    Why the outline exists
+    ----------------------
+    Okabe-Ito is built for **hue** separation under red-green deficiency, not for
+    **luminance** contrast against the page. Its yellow (``#F0E442``) is nearly invisible as
+    a thin line on white — a legibility failure for every viewer. A dark edge restores the
+    contrast *without altering a single hue*, so the colour-blind-safe property is preserved
+    exactly. It also rescues light-on-dark overlays (e.g. a white reaction-time curve drawn
+    over a cividis raster).
+
+    Why it is NOT a global rcParam
+    ------------------------------
+    matplotlib's global ``path.effects`` is tempting and **wrong here**: it strokes *text*
+    too, thickening every glyph until titles, ticks and legends look bold and smeared
+    (verified — it wrecked the figures). Outline lines per-artist; let text alone.
+    """
+    import matplotlib.patheffects as pe
+
+    return [pe.Stroke(linewidth=linewidth, foreground=foreground), pe.Normal()]
+
 
 def set_style() -> None:
-    """Apply the palette and a few sensible rcParams. Call once per session/notebook."""
+    """Apply the palette and a few sensible rcParams. Call once per session/notebook.
+
+    Markers get a thin black edge globally (safe: it only touches marker outlines).
+    **Lines** must be outlined per-artist with ``path_effects=stroke()`` -- see the note on
+    ``stroke`` for why this is not done globally.
+    """
     import matplotlib as mpl
     from cycler import cycler
 
@@ -53,6 +86,10 @@ def set_style() -> None:
         "figure.dpi": 110,
         "savefig.dpi": 130,
         "savefig.bbox": "tight",
+        # Marker edges are safe to set globally and already buy most of the legibility.
+        "lines.markeredgecolor": "black",
+        "lines.markeredgewidth": 0.6,
+        "scatter.edgecolors": "black",
     })
 
 

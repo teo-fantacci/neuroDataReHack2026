@@ -14,6 +14,11 @@ venv/
 /data/**
 !/data/
 !/data/.gitkeep
+# ONE caches also land OUTSIDE repo-root data/ when a notebook sets a relative cache dir
+# (e.g. notebooks/data/ONE is ~500 MB). Ignore ONE caches wherever they appear. These are
+# specific enough to never touch src/data/ (which has no ONE/ subdir).
+**/data/ONE/
+/notebooks/data/
 *.pqt
 *.npy
 *.nwb
