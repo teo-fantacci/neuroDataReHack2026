@@ -42,6 +42,13 @@ Interpreter path (Windows): `C:\Users\<user>\miniconda3\envs\neurodatarehack\pyt
 Register the Jupyter kernel once: `python -m ipykernel install --user --name neurodatarehack`.
 In VSCode: Ctrl+Shift+P → "Python: Select Interpreter" → `neurodatarehack`.
 
+**On every fresh clone, also run once:** `nbstripout --install --attributes .gitattributes`
+(2026-07-16). This activates the git **clean filter** that strips notebook **outputs** from
+committed blobs while keeping the plots in your working `.ipynb` on disk — the committed notebooks
+are ~30 KB, not the 0.5–4 MB they are on disk. If you skip it, your next notebook commit re-bloats
+the repo with embedded images. Committed notebooks are already stripped, so *reading* the repo needs
+nothing. See [worklog 2026-07-16](docs/worklog/2026-07-16_repo-cleanup-and-sharing.md).
+
 **Second env `ndrh_ssm`** (2026-07-13) — holds Linderman's `ssm` (the real rSLDS) and *nothing
 else touches it*. `ssm` is a **numpy-1.x** package: installing it into `neurodatarehack` would
 downgrade numpy 2.3.5 and take pynapple/numba/pandas 3.0 with it. Build once with
@@ -55,6 +62,11 @@ of a 6 GB MSVC install). The notebook stays in `neurodatarehack` and calls it **
 - IBL data is **downloaded & cached inside the repo at `data/ONE/`** (gitignored). It is
   NOT synced by GitHub, so a freshly-pulled machine re-downloads on first notebook run
   (~440 MB for the working session). `config/params.yaml::data.one_cache_dir` points there.
+  - ⚠️ **ONE also caches to `notebooks/data/ONE/` when a notebook uses a relative cache dir**
+    (~500 MB). That path is OUTSIDE the `/data/**` ignore rule (leading slash = repo root only),
+    so it was NOT ignored and a `git add -A` nearly committed half a GB. Now covered by
+    `**/data/ONE/` + `/notebooks/data/` in `.gitignore` (2026-07-16). Never relax the leading-slash
+    on `/data/**` — without it, the pattern also swallows `src/data/`.
 - **No account needed**: ONE-api ships public `openalyx` credentials; `src/data/access.py`
   uses them. A DANDI account is only needed if we pivot to SHIELD.
 - Reproducibility pins live in `src/data/access.py` (`PAPER_FREEZE`, `AGGREGATE_TAG`).
@@ -76,7 +88,9 @@ src/viz/     style.py (colour-vision-safe palette, stroke(), structured savefig)
 scripts/     run_phase1.py, run_hmm_triplet.py   (batch versions of the notebooks)
              install_ssm_env.sh (builds the ndrh_ssm env), run_rslds_ssm.py (runs INSIDE it)
              validate_hmm_vs_dynamax.py
-notebooks/   00_data_smoketest, 01_hmm_triplet, 02_dimred_msr, 03_rslds_triplet
+notebooks/   00_preprocessing (pipeline entry), 00_data_smoketest (Phase-0 access check),
+             01_hmm_triplet, 02_dimred_msr, 03_rslds_triplet, 04_manifold_dpca_gpfa_rrr (legacy,
+             merged into 02), 05_hmm_summary (write-up), 06_results_visualization
 docs/project_notes/  static scientific plan
 docs/knowledge/      recorded_areas_IBL_SHIELD.md (areas, full names, functions)
 docs/worklog/        dated session logs (READ THESE for current state)
@@ -160,6 +174,24 @@ Gotchas found by running it (v0.11.3):
   halving, the *temporal trajectory* does not. Also: MSR correctly gives a LOW score to a
   stereotyped burster (delta multiplicity distribution ⇒ relevance ≈ 0) — a low MSR is not
   automatically an uninformative unit.
+- **⚠️ rSLDS TESTED FOR REAL (2026-07-15/16)** — supersedes the "smoke settings only" note below.
+  Fitted on the frozen 40 ms tensors, both alignments, K=3/4/3, exact-EM screen + Poisson `ssm`
+  fit of record. Full write-up: `docs/worklog/2026-07-15_rslds-first-real-test.md` (analysis) +
+  `2026-07-16_rslds-viz-and-nb-cleanup.md` (viz + notebook cleanup). **Two verdicts:**
+  - ✅ **CERTIFIED — attractor *sequence*, not a stopwatch.** `delta_recurrent > 0` every region,
+    both alignments; a clean **position-shuffle null passes in 100 % of folds**
+    (`results/rslds/recurrence_test.json`); `order_consistency ≫` its shuffle null on both
+    backends. Gradient **MRN ≈ SCm ≫ VISp**. This is the project's core claim, now with an error
+    bar and a clean null.
+  - ❌ **RETIRED — the flow geometry** (attractor vs line-attractor/integrator). Both backends hit
+    `|λ| ≈ 1`; the `|λ|`-stability test (`run_rslds_lambda_stability.py`) proved it is **>97 %
+    reproduced on time-shuffled data** → the **smoother**, not the dynamics. GPFA's finite τ
+    (107–283 ms) is the honest timescale (slow but *contracting*). **Notebook-03 Part 6 (flow
+    geometry) was DELETED**; Part 10 (certified dashboard) added; `notebooks/06_results_visualization.ipynb`
+    + `src/viz/rslds_anim.py` animate the certified sequence (single-trial GIF + occupancy sweep).
+  - ⚠️ **`pre_s` BOOKKEEPING**: all rSLDS results/viz used **pre400** 40 ms tensors; the config
+    default is now **pre300** (2026-07-16). Both exist on disk; the `run_rslds_*.py` scripts
+    hard-code the pre400 filename. Re-point + re-run, or accept pre400 for this strand — but decide.
 - **Phase 3 rSLDS (2026-07-13)** — `notebooks/03_rslds_triplet.ipynb`, runs end-to-end on the
   real session (**smoke settings only — no scientific numbers claimed yet**). Two backends by
   design: our **exact-EM** rSLDS (`src/dynamics/rslds.py`, seconds — does the CV of K and the
