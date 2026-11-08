@@ -25,7 +25,9 @@ selection:
   # Minimum usable trials after the paper's trial mask.
   min_trials: 200
 
-# Frozen at the end of Phase 1. Leave empty until then.
+# Frozen 2026-11-08. The working session is the one used before the replications;
+# the other four {VISp, SCm, MRN} sessions are replicates (see
+# docs/knowledge/the_five_triplet_sessions.md). No code reads this block yet.
 selected:
-  eid: null
-  regions: []
+  eid: 5c0c560e-9e1f-45e9-b66e-e4ee7855be84
+  regions: [VISp, SCm, MRN]

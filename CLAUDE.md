@@ -222,8 +222,9 @@ Gotchas found by running it (v0.11.3):
   the whole sweep (.854–.860) — which is the real news: **the choice signal is robust to bin
   size and smoothing.** The config is chosen on external grounds (rSLDS ground-truth bin +
   fitted GPFA timescales).
-- **Open**: `config/areas.yaml::selected` still empty (now clearly `{VISp, SCm, MRN}`);
-  IBL-vs-SHIELD pivot (user keeping both open); GPU at Janelia; the SCm↔MRN feedback
+- **Decided (2026-11-08)**: `config/areas.yaml::selected` = `{VISp, SCm, MRN}` on working session
+  `5c0c560e` (the session used before the replications); the other 4 sessions are replicates.
+- **Open**: IBL-vs-SHIELD pivot (user keeping both open); GPU at Janelia; the SCm↔MRN feedback
   hypothesis → needs a **joint multi-region rSLDS** (one model on the concatenated SCm+MRN
   population; ask whether the recurrence matrix `R` carries cross-area structure). Next method
   suggestion: **dPCA** (splits variance into time/stimulus/choice — the actual project question).

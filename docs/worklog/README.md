@@ -56,5 +56,5 @@ Carried from `project_notes/`, plus what we've settled since:
 | **Anscombe does not stabilise variance at IBL rates** — kept, but the Poisson `ssm` backend is now doubly the principled one | 2026-07-14 | [entry](2026-07-14_preprocessing-unification.md) |
 | **⚠️ CORRECTION — "pool the 5 sessions" means REPLICATE, not pseudo-population.** Pseudo-populations are invalid for HMM/rSLDS (no simultaneity ⇒ no single-trial joint activity); valid for dPCA (trial-averaged) | 2026-07-14 | [entry](2026-07-14_preprocessing-unification.md) |
 | **No integrator/line-attractor claim from a 20 ms fit** — at IBL firing rates the latent is noise-dominated and \|λ\| → 1 by construction | 2026-07-13 | [entry](2026-07-13_rslds.md) |
-| Region set frozen in `config/areas.yaml` | **open** — human's call | [entry](2026-07-08_phase1-and-shield.md) |
+| **Region set frozen in `config/areas.yaml`: `{VISp, SCm, MRN}`, working session `5c0c560e`** (the other 4 triplet sessions are replicates) | 2026-11-08 | [entry](2026-07-08_phase1-and-shield.md) |
 | GPU availability at Janelia | **open** — ask organizers | `project_notes/Janelia pre-hack meeting.md` |
