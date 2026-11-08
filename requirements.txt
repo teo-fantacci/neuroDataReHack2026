@@ -1,31 +1,33 @@
 # NeuroDataReHack 2026 — IBL decision dynamics
 # CPU-first. Python 3.11. Install into the `neurodatarehack` conda env:
 #     conda activate neurodatarehack && pip install -r requirements.txt
+# Versions are PINNED (2026-11-08) to the environment that produced the results in docs/.
+# Loosen a pin only together with a re-run of the affected analysis.
 
 # ---- Core scientific stack ----
-numpy
-scipy
-scikit-learn
-pandas
-matplotlib
-pyyaml
-tabulate          # scripts/run_phase1.py -> markdown tables
+numpy==2.3.5
+scipy==1.17.1
+scikit-learn==1.9.0
+pandas==3.0.3
+matplotlib==3.11.0
+pyyaml==6.0.3
+tabulate==0.10.0      # scripts/run_phase1.py -> markdown tables
 
 # ---- Notebook ----
-jupyter
-ipykernel
+jupyter==1.1.1
+ipykernel==7.3.0
 
 # ---- IBL data access ----
 # ONE-api ships the public openalyx defaults; no account needed (verified 2026-07-08).
-ONE-api
+ONE-api==3.5.2
 # brainwidemap is NOT on PyPI; pulls ibllib/brainbox as dependencies.
-git+https://github.com/int-brain-lab/paper-brain-wide-map
+brainwidemap @ git+https://github.com/int-brain-lab/paper-brain-wide-map@118fc36cb3602934466ad2c6087c2b3b441f9f1f
 
 # ---- Phase 0/2: discrete state sequences ----
 # hmmlearn 0.3.3 provides PoissonHMM, the right emission model for spike counts.
 # This deliberately avoids `ssm`, which is Cython-built, effectively unmaintained,
 # and pins old numpy. See docs/worklog/2026-07-08_phase0-setup.md.
-hmmlearn>=0.3.0
+hmmlearn==0.3.3
 
 # ---- Exploration / basic analysis + an independent check on our own binning ----
 # pynapple: Ts/TsGroup/IntervalSet time-series model -> rasters, PSTHs, tuning curves,
@@ -34,13 +36,13 @@ hmmlearn>=0.3.0
 # PoissonHMM and matches our (trials, time, neurons) convention. Used to cross-check
 # src/data/build_matrices.py, NOT to replace it. Does no state-space modelling.
 # Additive install: no numpy/numba/pandas downgrade (dry-run verified).
-pynapple
+pynapple==0.11.3
 
 # ---- SHIELD (DANDI:001051) streaming ----
 # Lazy HDF5 reads straight from the DANDI URL: remfile.File(url) -> h5py.File(...).
 # (These were used in the Phase 1 SHIELD probe but never made it into this file.)
-remfile
-h5py
+remfile==0.1.13
+h5py==3.16.0
 
 # ---- Independent HMM implementation, used to VALIDATE ours ----
 # dynamax (Linderman lab, JAX, maintained). Verified 2026-07-12: given hmmlearn's exact
@@ -48,7 +50,8 @@ h5py
 # (rel. diff 3.6e-16 on VISp, 0.0 on SCm) and agrees with its Viterbi path on 100% of bins.
 # So our HMM/scoring path is correct — the "flat" CV curve is a property of the data.
 # Also the fallback for rSLDS.
-dynamax
+dynamax==1.0.2
+jax==0.10.2           # dynamax is sensitive to jax releases; pinned to the validated pair
 
 # ---- ssm: CORRECTION (2026-07-13) — it IS installable, just not into THIS env ----
 # The 2026-07-12 note ("CONFIRMED UNINSTALLABLE, do not retry") was too strong. The plain
@@ -86,15 +89,15 @@ dynamax
 # installing (the ssm lesson): umap-learn pulls only pynndescent; phate pulls graphtools,
 # pygsp, tasklogger. Neither downgrades numpy 2.3.5 / numba 0.66 / scikit-learn 1.9.
 # PCA/MDS/t-SNE/Isomap/Laplacian come from scikit-learn, already pinned above.
-umap-learn
-phate       # diffusion-based; the nonlinear method actually built for TRAJECTORIES
+umap-learn==0.5.12
+phate==2.0.0          # diffusion-based; the nonlinear method actually built for TRAJECTORIES
 
 # Added 2026-07-13 for notebooks/05_manifold_dpca_gpfa_rrr.ipynb. Both dry-run-verified
 # additive, then SMOKE-TESTED (installing != working: dPCA is from 2016 and runs fine on
 # numpy 2.3.5, but has an UNDECLARED dependency on numexpr -- it ImportErrors without it).
-dPCA        # Kobak et al. 2016: splits variance into time / stimulus / decision components
-numexpr     # undeclared runtime dep of dPCA. Do not remove.
-elephant    # provides the tested GPFA (Yu et al. 2009). Benchmarked: ~5 s for 300 trials.
+dPCA==1.0.5           # Kobak et al. 2016: splits variance into time / stimulus / decision components
+numexpr==2.14.1       # undeclared runtime dep of dPCA. Do not remove.
+elephant==1.2.1       # provides the tested GPFA (Yu et al. 2009). Benchmarked: ~5 s for 300 trials.
 # RRR (communication subspace, Semedo et al. 2019) has no package -- it is a closed-form
 # estimator, implemented in src/dynamics/rrr.py.
 # cebra     # pulls torch; heavy. Also SUPERVISED -> cannot argue a manifold exists
@@ -105,4 +108,6 @@ elephant    # provides the tested GPFA (Yu et al. 2009). Benchmarked: ~5 s for 3
 # committed blob while leaving your working .ipynb untouched (plots stay on disk). Keeps the
 # repo small and diffs readable. After `pip install`, run once per clone:
 #     nbstripout --install --attributes .gitattributes
-nbstripout
+nbstripout==0.9.1
+# Tests: `pytest` (fast suite, default) or `pytest -m slow` (full validations). See tests/.
+pytest==9.1.1
