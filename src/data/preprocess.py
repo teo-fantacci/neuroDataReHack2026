@@ -16,12 +16,14 @@ The decisions, and the evidence for each
 Measured on session ``5c0c560e`` (843 usable trials) -- see ``notebooks/00_preprocessing.ipynb``,
 which produces every number below and the figures behind them.
 
-**pre_s = 0.4 s.** IBL enforces a *quiescence period* (the wheel must be held still) before
-stimulus onset. In this session it is drawn from **[0.400, 0.700] s** (median 0.515). So:
-
-* a **0.4 s** baseline window lies inside the enforced-still period on **100 %** of trials;
-* the old **0.5 s** window steps outside it on **44 %** of trials, i.e. for nearly half the
-  trials part of the "baseline" is a period in which the mouse was free to move the wheel.
+**pre_s = 0.3 s (updated 2026-07-16).** IBL enforces a *quiescence period* (the wheel must be
+held still) before stimulus onset. In this session it is drawn from **[0.400, 0.700] s**
+(median 0.515), so any baseline window up to 0.4 s lies inside the enforced-still period on
+**100 %** of trials. We use **0.3 s**: a strict subset of that guaranteed-still window, so it
+is if anything *more* conservative than 0.4 s (a shorter, tighter, always-still baseline), at
+the cost of ~0.1 s of otherwise-clean baseline. For contrast, the old **0.5 s** window stepped
+*outside* the enforced-still period on **44 %** of trials -- for nearly half the trials part of
+that "baseline" was a period in which the mouse was free to move the wheel.
 
 Contamination from the *previous* trial is a non-issue: the minimum gap between the previous
 feedback and this stimulus onset is **2.7 s**.
@@ -96,7 +98,7 @@ class PreprocessConfig:
     """Every knob that decides what the models see. Serialised with the tensors."""
 
     align_event: str = "stimOn_times"
-    pre_s: float = 0.4
+    pre_s: float = 0.3   # 0.3 s (2026-07-16); a strict subset of the enforced quiescence floor
     post_s: float = 0.8
     bin_size_s: float = 0.04   # 40 ms (2026-07-15); see the module docstring for why not 50
     min_rate_hz: float = 1.0

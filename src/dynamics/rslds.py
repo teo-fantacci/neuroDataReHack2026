@@ -736,7 +736,7 @@ def cross_validate_K(
     candidate_states,
     *,
     n_latent: int = 3,
-    smooth_sigma_ms: float = 40.0,
+    smooth_sigma_ms: float = 60.0,   # 60 ms (2026-07-16); see src/geometry/embed.py
     bin_size_s: float = 0.04,
     n_folds: int = 3,
     n_iter: int = 40,

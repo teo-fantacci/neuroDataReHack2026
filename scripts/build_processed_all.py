@@ -19,7 +19,7 @@ Memory: each session loads ~16 M raw spikes (~0.5 GB) while binning. We process 
 a time and release the spike tables before the next, so peak RAM is ~one session, not five.
 Existing `.npz` are skipped unless --force.
 
-Writes:  data/processed/<eid8>__stimOn_pre400_post800_bin40_rate1.npz   (+ firstMovement)
+Writes:  data/processed/<eid8>__stimOn_pre300_post800_bin40_rate1.npz   (+ firstMovement)
 """
 
 from __future__ import annotations
@@ -65,7 +65,7 @@ def free_gb() -> float:
 
 
 def build_one(one, eid: str, bin_ms: int, *, force: bool) -> None:
-    tags = {a: PreprocessConfig(align_event=a, pre_s=0.4, post_s=0.8,
+    tags = {a: PreprocessConfig(align_event=a, pre_s=0.3, post_s=0.8,
                                 bin_size_s=bin_ms / 1000.0, min_rate_hz=1.0).tag()
             for a in ALIGNMENTS}
     paths = {a: OUT / f"{eid[:8]}__{tags[a]}.npz" for a in ALIGNMENTS}
@@ -80,7 +80,7 @@ def build_one(one, eid: str, bin_ms: int, *, force: bool) -> None:
           f"[{time.time()-t0:.0f}s, {free_gb()} GB free]")
 
     for align in ALIGNMENTS:
-        cfg = PreprocessConfig(align_event=align, pre_s=0.4, post_s=0.8,
+        cfg = PreprocessConfig(align_event=align, pre_s=0.3, post_s=0.8,
                                bin_size_s=bin_ms / 1000.0, min_rate_hz=1.0)
         ev = align_times(trials, mask, align)
         keep = usable_mask(trials, mask, align)

@@ -27,7 +27,7 @@ def main() -> None:
     trials, mask, probe_loads = load_session(one, WORKING_EID)
 
     for align in ("stimOn_times", "firstMovement_times"):
-        cfg = PreprocessConfig(align_event=align, pre_s=0.4, post_s=0.8,
+        cfg = PreprocessConfig(align_event=align, pre_s=0.3, post_s=0.8,
                                bin_size_s=0.04, min_rate_hz=1.0)
         ev = align_times(trials, mask, align)
         keep = usable_mask(trials, mask, align)

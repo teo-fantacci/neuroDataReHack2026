@@ -167,7 +167,7 @@ def population_matrix(
     units: np.ndarray | None = None,
     *,
     bin_size_s: float,
-    smooth_sigma_ms: float = 40.0,
+    smooth_sigma_ms: float = 60.0,   # 60 ms (2026-07-16); still below the fastest GPFA tau (107 ms)
     zscore: bool = True,
 ) -> np.ndarray:
     """(trials, time, neurons) -> (trials*time, |units|) point cloud, for geometry only.
