@@ -1,170 +1,202 @@
 # IBL Decision Dynamics
 
-**NeuroDataReHack 2026 — HHMI Janelia, 11–17 July 2026**
+[![tests](https://github.com/teo-fantacci/neuroDataReHack2026/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/teo-fantacci/neuroDataReHack2026/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Reanalysis of the IBL Brain-Wide Map ([DANDI:000409](https://dandiarchive.org/dandiset/000409);
-IBL et al. 2025, *Nature* 645:177–189).
+**NeuroDataReHack 2026, HHMI Janelia, 11–17 July 2026.** A reanalysis of the IBL Brain-Wide Map
+([DANDI:000409](https://dandiarchive.org/dandiset/000409); IBL et al. 2025, *Nature* 645:177–189)
+asking whether a perceptual decision unfolds as a **sequence of metastable population states**
+that is shared across brain areas but expressed differently in each. We study the one
+visual-to-motor axis that IBL records simultaneously in at least five mice, **VISp** (primary
+visual cortex), **SCm** (motor superior colliculus) and **MRN** (midbrain reticular nucleus), with
+Poisson hidden Markov models, recurrent switching linear dynamical systems (rSLDS) and demixed
+dimensionality reduction. Claims are tested against null models or a planted ground truth, and
+the repository keeps the record of what was certified, what is still a lead, and what was
+retracted.
 
-**The claim.** Decision-making is a **temporal sequence of metastable / attractor states**,
-**shared across areas** but realised on **geometrically distinct, area-specific manifolds** —
-*distributed temporal sequences within populations, not a clean anatomical relay.*
+## Key results
 
-We test it on the one visual→motor axis IBL co-records simultaneously in ≥5 sessions:
-**`{VISp, SCm, MRN}`** (primary visual cortex → superior colliculus motor → midbrain
-reticular nucleus). Working session `5c0c560e`; all 5 triplet sessions are built for replication.
+**1. Motor areas move through their states in a consistent order; visual cortex does not.**
+SCm is directed in all five mice and MRN on average (two mice sit near chance). VISp is undirected
+in all five. The pattern holds under both stimulus and movement alignment.
 
-## Where the claim stands (honest status)
+![HMM directedness across five sessions](docs/figures/hmm_directedness_5sessions.png)
 
-The full, sourced status is
-[`docs/knowledge/project_synthesis_2026-07-15.md`](docs/knowledge/project_synthesis_2026-07-15.md).
-In one paragraph:
+*Poisson-HMM `forward_fraction` (split-half), one dot per mouse. 0.5 means transitions go
+forward and backward equally often; 1.0 means a strict forward chain.*
 
-- ✅ **The sequence half is certified** (one session; replication across 5 pending). There is a
-  reliable, position-dependent temporal **sequence** of states in all three regions — not a timed
-  stopwatch (rSLDS recurrence test beats a position-shuffle null in 100% of folds) and not a
-  movement-timing artefact. Motor areas traverse their states more directedly than visual cortex
-  (HMM `forward_fraction`: VISp ≈ 0.53 *undirected*, SCm ≈ 0.83, MRN ≈ 0.67).
-- 🔶 **The area-specific-manifold half is a strong single-session lead.** The same visual→motor
-  ordering falls out of **four** independent methods (dPCA decision-variance gradient, GPFA
-  timescales, RRR common-drive, HMM directedness) — but every number is one session. **Replicate
-  before it becomes a figure.**
-- ❌ **Retracted:** "we found the line attractor / integrator a decision variable lives on." The
-  `|λ| ≈ 1` behind it is >97% reproduced on temporally-shuffled data — it is manufactured by the
-  smoother, not the dynamics. The honest replacement is *"slow but contracting dynamics, motor
-  slower than visual."*
+**2. The states form a position-dependent sequence, not a timed script. The "line attractor"
+reading was retracted.**
+
+![rSLDS sequence tests](docs/figures/rslds_sequence_tests.png)
+
+*rSLDS on the working session `5c0c560e`, computed on the earlier 0.4 s-baseline tensors. Panels
+a–c: switching depends on where the latent state is, strongly in SCm and MRN and weakly in VISp,
+and the order of states is reproducible across trials. Panel d shows why the
+attractor-geometry claim was withdrawn: shuffling time barely changes the fitted |λ|, so it is set
+by the smoother, not by the dynamics.*
+
+**3. Lead, not yet a claim: decision variance grows from visual to motor areas.**
+
+![dPCA variance split and gradient](docs/figures/dpca_decision_gradient.png)
+
+*dPCA on the working session. Decision-minus-stimulus variance rises from VISp to SCm to MRN.
+Session `111c1762`, which has the cleanest VISp recording, does not reproduce this gradient, so it
+needs the five sessions pooled before it can be claimed.*
+
+### Status in one place
+
+| Finding | Status |
+|---|---|
+| A reliable, position-dependent sequence of states exists in all three areas (rSLDS recurrence test beats a position-shuffle null in every fold) | ✅ certified, one session |
+| Motor areas traverse their states directedly, VISp does not. Pooled `forward_fraction`: VISp 0.52, SCm 0.64, MRN 0.64 | ✅ certified direction (SCm 5/5 mice, MRN 3/5) |
+| The first evoked HMM state is locked to **movement**, not to the stimulus | ✅ certified (a caveat on every "decision" reading) |
+| Decision variance and timescale grow from visual to motor areas (dPCA, GPFA) | 🔶 lead, one session |
+| SCm and MRN share a common drive rather than a restricted channel (RRR, zero-lag correlogram, HMM) | 🔶 lead |
+| "The states are line attractors / integrators" | ❌ retracted: an artefact of smoothing |
+| A state-count gradient across areas | ❌ retracted: the count is about 3 everywhere |
+
+Full, sourced status: [`docs/knowledge/project_synthesis_2026-07-15.md`](docs/knowledge/project_synthesis_2026-07-15.md).
+Single-session effect sizes quoted in older docs (for example SCm 0.83) were corrected downwards by
+the five-session replication; the pooled numbers above are the ones to use.
+
+## Project phases and notebooks
+
+Notebooks are numbered in run order and grouped by the phases of the
+[project plan](docs/project_notes/Janelia_project_plan_with_2nd_dataset.md).
+
+| Phase | Notebook | What it does |
+|---|---|---|
+| 0 · Setup and data | `00_data_smoketest` | Data-access check plus visual inspection: PSTHs, rasters, decoder |
+| 0 · Setup and data | `01_preprocessing` | **Run first.** Builds the frozen tensors every model reads |
+| 1 · Area selection | *(script)* `scripts/run_phase1.py` | Which regions IBL co-records; picks `{VISp, SCm, MRN}` |
+| 2 · Dynamics backbone | `02_hmm_triplet` | Poisson HMM: state sequences, `forward_fraction`, K by state stability |
+| 2 · Dynamics backbone | `03_rslds_triplet` | rSLDS (fast exact-EM plus Linderman's `ssm`): recurrence and order tests |
+| 3 · Geometry | `04_dimred_msr` | PCA, dPCA, MDS, Laplacian, GPFA, RRR, joint manifold; MSR as a comparison |
+| 3 · Geometry | `05_manifold_dpca_gpfa_rrr` | Legacy: merged into `04`; kept for the bin-by-smoothing sweep |
+| 4 · Second dataset | `06_monkey_data_colleagueD` | Macaque working-memory data (FEF, DMFC): first look |
+| 4 · Second dataset | `07_monkey_hmm` | Delay-aligned HMM, state-vs-task-phase, drift diagnosis |
+| 4 · Second dataset | `08_monkey_dimred` | PCA, dPCA and FEF–DMFC communication subspace |
+| 5 · Write-up | `09_hmm_summary` | The HMM strand: what was tested, what failed, what replicates |
+| 5 · Write-up | `10_results_visualization` | Animations of the certified regime sequence |
+
+Figures are written to `results/figures/<phase>_<topic>/` and are regenerated, not committed;
+the three figures above are copied to [`docs/figures/`](docs/figures/).
 
 ## Setup
 
-One conda env runs **everything** below:
+One conda environment runs everything:
 
 ```bash
 conda create -n neurodatarehack python=3.11 -y
 conda activate neurodatarehack
-pip install -r requirements.txt
-python -m ipykernel install --user --name neurodatarehack   # register the Jupyter kernel once
-nbstripout --install --attributes .gitattributes            # strip notebook OUTPUTS from commits (keeps them on disk)
+pip install -r requirements.txt                              # versions are pinned
+python -m ipykernel install --user --name neurodatarehack    # register the Jupyter kernel once
+nbstripout --install --attributes .gitattributes             # strip notebook outputs from commits
 ```
 
-### The `ssm` env is OPTIONAL — you can skip it
+**The `ssm` environment is optional.** Linderman's `ssm`, the Poisson rSLDS used as the fit of
+record, needs numpy 1.x, so it lives in a separate env, `ndrh_ssm`, and is called out of process.
+The code detects whether it exists and otherwise falls back to the fast exact-EM rSLDS, which is
+the engine behind the certified recurrence result. Build it only for the second-backend
+cross-check, once and without admin rights: `bash scripts/install_ssm_env.sh`.
 
-Linderman's `ssm` (the Poisson rSLDS "fit of record") is **numpy-1.x** and would downgrade the
-main env, so it lives in a *separate* env `ndrh_ssm`. **You do not need it to run the notebooks.**
-The code auto-detects it: `ssm_env_available()`
-([`src/dynamics/rslds_ssm.py`](src/dynamics/rslds_ssm.py)) returns `False` when the env is absent,
-and notebook `03` / the batch scripts fall back to the fast **exact-EM** rSLDS
-([`src/dynamics/rslds.py`](src/dynamics/rslds.py)) — which is what produces the certified
-recurrence result anyway. Skipping `ssm` only costs you the second-backend cross-check.
-
-Build it only if you want that cross-check (one-off, no admin rights):
+## Tests
 
 ```bash
-bash scripts/install_ssm_env.sh        # builds ndrh_ssm via conda's mingw toolchain
+pytest            # fast suite, about 15 s, synthetic data only, no downloads (this is what CI runs)
+pytest -m slow    # full validations: rSLDS ground-truth sweep and the optional ssm bridge, about 6 min
 ```
 
-## Data — not in git
+The suite turns the project's two validation scripts into tests. Our HMM must score data exactly
+as an independent implementation does: [dynamax](https://github.com/probml/dynamax), to machine
+precision. The rSLDS must recover a planted three-state sequence at the project's 40 ms bin without
+inventing a line attractor. Unit tests cover binning, the frozen preprocessing configuration and its
+`.npz` round trip, the HMM read-outs, RRR and MSR.
 
-- **No account needed.** ONE-api ships public `openalyx` credentials; `src/data/access.py` uses
-  them. (A DANDI account is only needed if we pivot to SHIELD, DANDI:001051.)
-- IBL data is **downloaded and cached inside the repo** and is gitignored, so a freshly-cloned
-  machine **re-downloads on first run** (~440 MB for the working session). The cache path is
-  `config/params.yaml::data.one_cache_dir`.
-- Reproducibility is pinned to the paper freeze `2023_12_bwm_release` (aggregate tag
-  `2024_Q2_IBL_et_al_BWM`); `bwm_units` asserts a hash of the unit UUIDs so we analyse **exactly**
-  the paper's 62,990 units. Two upstream `brainwidemap` bugs are worked around in
-  [`src/data/access.py`](src/data/access.py) — see the
-  [Phase-0 worklog](docs/worklog/2026-07-08_phase0-setup.md). Do **not** "fix" them with
-  `enforce_version=False`; that silently changes the unit set.
+## Data
 
-## Run order
+Nothing is stored in git. No account is needed: ONE-api ships IBL's public `openalyx`
+credentials.
 
-Every model eats the same frozen tensors, so preprocessing runs first:
+- **IBL Brain-Wide Map** is read through ONE-api and `brainwidemap`, pinned to the paper freeze
+  `2023_12_bwm_release`. A hash of the unit IDs is asserted, so the analysis uses **exactly** the
+  paper's 62,990 units. Two upstream `brainwidemap` bugs are worked around in
+  [`src/data/access.py`](src/data/access.py) (see the
+  [Phase 0 worklog](docs/worklog/2026-07-08_phase0-setup.md)). The working session downloads about
+  440 MB into `data/ONE/` on first run.
+- **The same five sessions are on DANDI as NWB files** in
+  [DANDI:000409](https://dandiarchive.org/dandiset/000409), created with NeuroConv. For the working
+  session we checked that all units in the NWB units table carry the same IBL cluster UUIDs as the
+  paper's unit tables, so the spike sorting is identical. The analysis currently reads data
+  through ONE; an NWB loader is a planned addition.
 
-1. **[`notebooks/01_preprocessing.ipynb`](notebooks/01_preprocessing.ipynb)** — builds the frozen
-   `data/processed/*.npz` tensors (stimOn **and** firstMovement alignment, `pre` 0.4 s, `post`
-   0.8 s, **40 ms bins**, units ≥ 1 Hz). Config is serialised inside each `.npz`.
-2. **[`02_hmm_triplet`](notebooks/02_hmm_triplet.ipynb)** → state sequences and directedness.
-3. **[`04_dimred_msr`](notebooks/04_dimred_msr.ipynb)** → geometry (PCA / dPCA / GPFA / RRR / joint
-   manifold).
-4. **[`03_rslds_triplet`](notebooks/03_rslds_triplet.ipynb)** → the attractor-sequence tests.
+  | Session | DANDI subject | Role |
+  |---|---|---|
+  | `5c0c560e` | `sub-NR-0028` | working session |
+  | `90c61c38` | `sub-CSH-ZAD-025` | replicate |
+  | `111c1762` | `sub-UCLA033` | replicate, cleanest VISp |
+  | `90d1e82c` | `sub-DY-010` | replicate |
+  | `8a3a0197` | `sub-UCLA034` | replicate |
 
-`00_data_smoketest` is the original Phase-0 "does data access work" check — a good first run on a
-fresh machine, gated behind `DOWNLOAD = False`.
+- **Second dataset (phase 4):** macaque frontal cortex during a multi-object working-memory task,
+  [DANDI:000620](https://dandiarchive.org/dandiset/000620) (Watters, Gabel, Tenenbaum and Jazayeri).
+  The notebooks read a preprocessed spike-time file derived from it that a colleague shared; it
+  is not redistributed here.
 
 ## Repository map
 
-### Notebooks (`notebooks/`)
-
-| Notebook | Does | Status |
-|---|---|---|
-| `01_preprocessing` | Builds the frozen `.npz` tensors every model reads | **current — run first** |
-| `00_data_smoketest` | Phase-0 data-access sanity check (openalyx → tensor → HMM) | current (entry check) |
-| `02_hmm_triplet` | Poisson HMM: state sequences, `forward_fraction`, K by stability | **current** |
-| `04_dimred_msr` | Consolidated geometry: PCA/dPCA/MDS/Laplacian (3-D) + GPFA/RRR/joint manifold + MSR | **current** |
-| `03_rslds_triplet` | rSLDS (exact-EM + `ssm`): recurrence test, order-consistency | **current** |
-| `05_manifold_dpca_gpfa_rrr` | dPCA/GPFA/RRR/manifold | legacy — results merged into `04`; kept for the bin×smoothing sweep + method zoo |
-| `09_hmm_summary` | HMM strand write-up: what we tested, what failed, what replicates | write-up (no heavy outputs) |
-| `10_results_visualization` | Regime-sequence animation / final viz | current (viz) |
-
-### Source (`src/`)
-
-| Module | Purpose |
+| Path | Contents |
 |---|---|
-| `data/access.py` | ONE-api + `brainwidemap` wrappers; reproducibility pins + bug workarounds |
-| `data/preprocess.py` | **The single preprocessing pipeline** → frozen `.npz` (config serialised inside) |
-| `data/build_matrices.py` | spikes → `(trials, time, neurons)` tensors, rasters, per-region spike trains |
-| `data/select_areas.py` | Phase-1 co-occurrence area selection |
-| `dynamics/hmm.py` | Poisson HMM: baseline-biased startprob, `forward_fraction`, CV / stability of K |
-| `dynamics/rslds.py` | Our exact-EM rSLDS on a PCA latent + sequence statistics (fast; does the screen + recurrence) |
-| `dynamics/rslds_ssm.py` | Out-of-process bridge to Linderman `ssm` in the `ndrh_ssm` env (fit of record) |
-| `dynamics/dpca.py`, `gpfa.py`, `rrr.py` | Demixed PCA, GPFA timescales, reduced-rank regression |
-| `selection/msr.py` | Multiscale relevance + task-selectivity (evaluated, **not adopted** — see synthesis) |
-| `geometry/embed.py`, `joint.py` | Manifold embeddings; joint-population PCA with per-area partial projections |
-| `viz/style.py` | **Colour-vision-safe** palette (Okabe-Ito / cividis / RdBu_r); `set_style()`, `savefig()` |
-| `viz/nap_plots.py`, `rslds_anim.py` | pynapple rasters/PSTHs/correlograms; rSLDS animation |
+| `src/data/` | `access.py` (ONE + reproducibility pins), `preprocess.py` (**the single preprocessing pipeline**), `build_matrices.py` (spikes to `(trials, time, neurons)` tensors), `select_areas.py`, `monkey.py` (DANDI:000620 loader) |
+| `src/dynamics/` | `hmm.py` (Poisson HMM and read-outs), `rslds.py` (exact-EM rSLDS and sequence statistics), `rslds_ssm.py` (bridge to `ssm`), `dpca.py`, `gpfa.py`, `rrr.py` |
+| `src/geometry/` | `embed.py` (embeddings), `joint.py` (joint-population PCA with per-area projections) |
+| `src/selection/` | `msr.py` (multiscale relevance; evaluated, **not adopted**) |
+| `src/viz/` | `style.py` (colour-vision-safe palette, `savefig`), `nap_plots.py`, `rslds_anim.py`, `anim3d.py` |
+| `scripts/` | Headless versions of the analyses: data building (`build_processed_*`), HMM (`run_hmm_*`), rSLDS (`run_rslds_*`), figures (`plot_preprocessing_summary`, `build_session_recap`), monkey (`run_monkey_hmm_alignments`, `compare_hmm_mouse_monkey`), validation (`validate_*`) |
+| `tests/` | pytest suite (see above) |
+| `config/` | `areas.yaml` (selected regions and session), `params.yaml` |
+| `docs/knowledge/` | Method and maths notes; `project_synthesis_*.md` is the executive status |
+| `docs/worklog/` | Dated session logs, newest first: what was decided and why |
+| `docs/project_notes/` | The pre-hackathon plan (static) |
 
-### Scripts (`scripts/`) — batch/headless versions of the notebook analyses
+Conventions that matter: tensors are `(trials, time, neurons)` of **raw counts** (smoothing only for
+geometry and plots); bins are **40 ms** everywhere (20 ms manufactures fake integrators, 50 ms
+degrades SCm state stability); single-trial models are fitted **per session** and their statistics
+pooled, never on a cross-session pseudo-population.
 
-- **Build data:** `build_processed_40ms.py`, `build_processed_all.py` (all 5 sessions),
-  `preprocess_second_session.py`, `survey_triplet_sessions.py`
-- **HMM:** `run_hmm_triplet.py`, `run_hmm_sessions.py`, `run_hmm_kselect.py`,
-  `run_state_stability.py`, `run_movement_alignment.py`, `run_binsize_check.py`
-- **rSLDS:** `run_rslds_screen.py`, `run_rslds_recurrence.py`, `run_rslds_lambda_stability.py`,
-  `run_rslds_ssm.py` / `run_rslds_ssm_record.py` (run inside `ndrh_ssm`)
-- **Env + validation:** `install_ssm_env.sh`, `validate_hmm_vs_dynamax.py`,
-  `validate_rslds_ground_truth.py`
-- **Phase 1:** `run_phase1.py`
+## How AI coding agents were used
 
-### Config & docs
+The analysis was developed with **Claude Code** (Anthropic) as a pair programmer. The scientific
+question, the choice of regions and sessions, and the decision of what counts as certified were the
+author's. Two files make the collaboration auditable:
 
-```
-config/     areas.yaml (candidate/selected regions), params.yaml (bins, HMM, repro pins, cache dir)
-docs/knowledge/  method + maths teaching notes; project_synthesis_*.md = the executive status
-docs/worklog/    dated session logs — READ NEWEST-FIRST for the running state
-docs/project_notes/  static pre-hackathon scientific plan
-results/     figures + CSVs (gitignored; regenerated) — only *.md summaries are committed
-```
+- [`CLAUDE.md`](CLAUDE.md) holds the standing instructions given to the agent: conventions,
+  verification rules, and a list of traps that already happened so they are not repeated.
+- [`docs/worklog/`](docs/worklog/) records each session's decisions with the evidence behind them,
+  including the ones that were reversed.
 
-## Conventions (a few that bite)
+The rule was that an agent's output is a claim to verify, not a result. Examples from this repo:
 
-- Tensors are `(trials, time, neurons)`. The Poisson HMM needs **raw counts** — never smooth
-  before fitting. Smoothing is for geometry/plots only.
-- Single-trial methods need **simultaneously recorded** populations → work per session, per region;
-  never build a cross-session pseudo-population for the HMM/rSLDS (it destroys what a trial is).
-  **Pooling means replicate** (fit each session, pool the statistics). dPCA is the exception —
-  a trial-averaged pseudo-population is valid there.
-- **Bin = 40 ms, project-wide.** 20 ms manufactures fake integrators; 50 ms degrades SCm stability.
-- Never take an argmax without checking the winner is **interior** and the criterion is
-  **independent of the parameter being chosen** (this trap bit us three times — K, integrators,
-  smoothing σ).
-- Save figures via `src.viz.style.savefig(fig, "<phase>", "<name>")`.
+- **A retracted headline.** The rSLDS first suggested line attractors, the result the project hoped
+  for. A time-shuffle control reproduced more than 97 % of the fitted |λ|, so the claim was withdrawn
+  (figure 2, panel d).
+- **An independent implementation.** The HMM likelihood was checked against dynamax to machine
+  precision before any model comparison was trusted. That check is now a test.
+- **A planted ground truth.** The rSLDS had to recover a known sequence before being run on data.
+  That exposed a "sticky" prior that was silently being overwritten, and showed that 20 ms bins
+  produce spurious integrators.
+- **A misdiagnosis caught.** The agent once recorded the published `ssm` package as uninstallable.
+  The error turned out to be two separate, fixable problems. The published implementation became
+  the fit of record, and the faster in-house version was kept only as a cross-check.
+- **Replication over one good session.** A directedness effect of 0.83 in one session became 0.64
+  once all five mice were fitted, and the README reports the pooled number.
 
-## Where to read next
+## License
 
-- Current state + cross-machine handoff → [`CLAUDE.md`](CLAUDE.md)
-- Executive status (certified / lead / retracted) →
-  [`docs/knowledge/project_synthesis_2026-07-15.md`](docs/knowledge/project_synthesis_2026-07-15.md)
-- Deep method + maths notes → [`docs/knowledge/`](docs/knowledge/)
-- What we did and why, session by session → [`docs/worklog/`](docs/worklog/) (newest first)
+The code is released under the [MIT License](LICENSE). No data are included. The IBL Brain-Wide
+Map (DANDI:000409) and DANDI:000620 are distributed under CC-BY-4.0 by their authors. Cite the
+original datasets when using them.
 
 ## Key references
 

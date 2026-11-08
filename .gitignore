@@ -36,6 +36,8 @@ results/**
 *.png
 *.pdf
 *.svg
+# ...except the few small, curated figures embedded in the README.
+!docs/figures/*.png
 
 # ---- OS / editor ----
 .DS_Store
