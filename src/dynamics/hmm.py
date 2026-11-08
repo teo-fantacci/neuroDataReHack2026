@@ -60,6 +60,27 @@ def _floor_lambdas(model, floor: float = LAMBDA_FLOOR):
     return model
 
 
+def _repair_transmat(model):
+    """Fix zero-sum transition rows so ``score``/``predict`` do not raise.
+
+    A state that is never *left* during EM leaves a zero-sum row in ``transmat_``, and
+    hmmlearn's ``_check`` then rejects the model at score/predict time
+    (``transmat_ rows must sum to 1``). This surfaces on small windows or high K, where some
+    state goes unvisited. We set such a row to a pure self-transition — the MLE for "never
+    observed leaving" — which is harmless (the state was, by definition, not used to move) and
+    lets Viterbi/score run instead of crashing the whole stability scan.
+    """
+    import numpy as _np
+
+    tm = _np.asarray(model.transmat_, dtype=float)
+    bad = _np.flatnonzero(tm.sum(axis=1) <= 0)
+    if bad.size:
+        tm[bad] = 0.0
+        tm[bad, bad] = 1.0
+        model.transmat_ = tm
+    return model
+
+
 def drop_units_silent_in(counts: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Drop neurons with zero spikes in *this* tensor. Returns (counts, kept_idx).
 
@@ -127,6 +148,7 @@ def fit_poisson_hmm(
     )
     model.fit(X, lengths)
     _floor_lambdas(model)   # never leave a Poisson rate at exactly 0 (see LAMBDA_FLOOR)
+    _repair_transmat(model)  # a never-left state leaves a zero-sum row that predict() rejects
     states = model.predict(X, lengths).reshape(n_trials, n_bins)
 
     # (2) install the baseline prior and re-decode
@@ -354,6 +376,7 @@ def _fit_best_of(counts_subset, n_states, n_iter, seed, n_restarts):
                        tol=1e-2, implementation="log")
         m.fit(X, lengths)
         _floor_lambdas(m)
+        _repair_transmat(m)   # zero-sum transmat row (unvisited state) -> score() would raise
         ll = float(m.score(X, lengths))
         if ll > best_ll:
             best, best_ll = m, ll
@@ -693,6 +716,176 @@ def forward_fraction_split_half(
         "n_repeats": n_repeats,
         "values": vals.tolist(),
     }
+
+
+# ---------------------------------------------------------------------------
+# State <-> task-phase alignment.
+#
+# Does the inferred state sequence track the *phases of the task* (baseline,
+# post-stimulus, post-movement, ...), or is it just an internal population
+# rhythm? Given per-trial landmark event times we can label every bin with the
+# task phase it falls in and ask how much the decoded state and that phase agree.
+#
+# THE CONFOUND THAT MAKES THE NAIVE VERSION MEANINGLESS. Both the state sequence
+# and the phase label are strong functions of *absolute* time within the trial
+# (the stimulus arrives at a fixed offset; the HMM's evoked state rises after
+# it). So mutual information between them is high *by construction*, even if the
+# state ignores the task entirely. The honest question is whether the state
+# tracks the **trial-specific, variable** timing -- most sharply, whether a
+# state boundary moves with the single-trial movement latency (RT). We test that
+# with a null that permutes each trial's landmark times ACROSS trials: it keeps
+# every trial's own state sequence and the absolute-time phase structure, but
+# destroys the coupling between a trial's states and *that trial's* landmarks.
+# Observed alignment above this null is alignment the clock alone cannot explain.
+# ---------------------------------------------------------------------------
+
+
+def phase_labels(bin_centers: np.ndarray, landmark_times: np.ndarray) -> np.ndarray:
+    """Label every (trial, bin) with the task phase it falls in.
+
+    Parameters
+    ----------
+    bin_centers
+        (n_bins,) bin-centre times in seconds, relative to the alignment event.
+    landmark_times
+        (n_trials, n_landmarks) times (s, same reference as ``bin_centers``) of the
+        events that separate the phases, e.g. ``[stimOn, firstMovement]``. ``NaN`` marks
+        a landmark that did not occur on that trial (it then never advances the phase).
+
+    Returns
+    -------
+    (n_trials, n_bins) int array. The phase of a bin is the number of landmarks that have
+    occurred at or before that bin -- so with landmarks ``[stimOn=0, move=rt]`` the labels
+    are 0 = pre-stimulus, 1 = post-stim/pre-move, 2 = post-move.
+
+    Caveat: because a ``NaN`` landmark never advances the phase, trials missing a landmark
+    sit at a lower phase for the rest of the window. That is only sensible when the missing
+    landmark is genuinely the *last* one; keep earlier landmarks non-NaN (drop such trials
+    upstream if needed).
+    """
+    bc = np.asarray(bin_centers)[None, :, None]          # (1, n_bins, 1)
+    lm = np.asarray(landmark_times)[:, None, :]          # (n_trials, 1, n_landmarks)
+    occurred = (bc >= lm) & ~np.isnan(lm)                # (n_trials, n_bins, n_landmarks)
+    return occurred.sum(axis=2).astype(int)              # (n_trials, n_bins)
+
+
+def _cramers_v(contingency: np.ndarray) -> float:
+    """Cramer's V (0..1) association between the two categoricals of a contingency table."""
+    from scipy.stats import chi2_contingency
+
+    # Drop all-zero rows/cols so chi2_contingency does not divide by a zero marginal.
+    c = contingency[contingency.sum(axis=1) > 0][:, contingency.sum(axis=0) > 0]
+    if c.shape[0] < 2 or c.shape[1] < 2:
+        return 0.0
+    chi2 = chi2_contingency(c, correction=False)[0]
+    n = c.sum()
+    return float(np.sqrt((chi2 / n) / (min(c.shape) - 1)))
+
+
+def state_phase_alignment(
+    states: np.ndarray,
+    bin_centers: np.ndarray,
+    landmark_times: np.ndarray,
+    *,
+    n_states: int | None = None,
+    n_shuffles: int = 200,
+    seed: int = 0,
+) -> dict:
+    """How much does the decoded state sequence align with the task phases?
+
+    Reports normalised mutual information (NMI) between per-bin state and per-bin phase,
+    referenced to a **trial-permutation null** (landmark times shuffled across trials).
+    The null number is the one to trust: raw NMI is inflated because both quantities track
+    absolute time (see the module note above).
+
+    Returns a dict with:
+      ``nmi``               observed NMI(state; phase)
+      ``nmi_null_mean/std`` null NMI under permuting landmark times across trials
+      ``nmi_z``             (nmi - null_mean) / null_std -- alignment beyond the clock
+      ``nmi_p``             one-sided permutation p (fraction of null >= observed)
+      ``cramers_v``         Cramer's V of the state x phase contingency (descriptive)
+      ``p_state_given_phase`` (n_states, n_phases) column-normalised occupancy, for a heatmap
+      ``phase_of``          (n_phases,) the phase index labels present
+    """
+    from sklearn.metrics import normalized_mutual_info_score
+
+    states = np.asarray(states)
+    n_trials = states.shape[0]
+    if n_states is None:
+        n_states = int(states.max()) + 1
+
+    phases = phase_labels(bin_centers, landmark_times)
+    s_flat, p_flat = states.ravel(), phases.ravel()
+    nmi = float(normalized_mutual_info_score(s_flat, p_flat))
+
+    n_phases = int(p_flat.max()) + 1
+    cont = np.zeros((n_states, n_phases), dtype=np.int64)
+    np.add.at(cont, (s_flat, p_flat), 1)
+    col = cont.sum(axis=0, keepdims=True)
+    p_state_given_phase = cont / np.clip(col, 1, None)
+
+    rng = np.random.default_rng(seed)
+    null = np.empty(n_shuffles)
+    for i in range(n_shuffles):
+        ph = phase_labels(bin_centers, landmark_times[rng.permutation(n_trials)])
+        null[i] = normalized_mutual_info_score(s_flat, ph.ravel())
+
+    null_mean, null_std = float(null.mean()), float(null.std())
+    return {
+        "nmi": nmi,
+        "nmi_null_mean": null_mean,
+        "nmi_null_std": null_std,
+        "nmi_z": float((nmi - null_mean) / null_std) if null_std > 0 else float("nan"),
+        "nmi_p": float((null >= nmi).mean()),
+        "cramers_v": _cramers_v(cont),
+        "p_state_given_phase": p_state_given_phase,
+        "phase_of": np.arange(n_phases),
+        "n_shuffles": n_shuffles,
+    }
+
+
+def state_locked_occupancy(
+    states: np.ndarray,
+    bin_centers: np.ndarray,
+    event_offset: np.ndarray,
+    *,
+    n_states: int | None = None,
+    win_s: tuple[float, float] = (-0.4, 0.4),
+) -> tuple[np.ndarray, np.ndarray]:
+    """State occupancy re-locked to a per-trial event -- a PSTH whose 'firing' is the state.
+
+    Each trial's state sequence is shifted so ``event_offset[trial]`` (a time relative to
+    the tensor's alignment event, e.g. RT to re-lock onto movement) sits at t = 0, then
+    occupancy is accumulated on a common relative-time grid. A transition that *locks* to
+    the event sharpens here relative to the stimulus-aligned occupancy; one that is merely
+    clock-driven smears out.
+
+    Returns ``(rel_t, occ)`` where ``rel_t`` is (n_grid,) seconds from the event and ``occ``
+    is (n_states, n_grid) = P(state | time-from-event). Trials with a NaN offset are skipped.
+    """
+    states = np.asarray(states)
+    n_trials, n_bins = states.shape
+    if n_states is None:
+        n_states = int(states.max()) + 1
+
+    step = float(bin_centers[1] - bin_centers[0])
+    rel_t = np.arange(win_s[0], win_s[1] + 0.5 * step, step)
+    counts = np.zeros((n_states, len(rel_t)))
+    totals = np.zeros(len(rel_t))
+
+    for tr in range(n_trials):
+        off = event_offset[tr]
+        if not np.isfinite(off):
+            continue
+        # nearest source bin for each grid point: source time = event + rel_t
+        src = np.rint((off + rel_t - bin_centers[0]) / step).astype(int)
+        ok = (src >= 0) & (src < n_bins)
+        st = states[tr, src[ok]]
+        np.add.at(counts, (st, np.flatnonzero(ok)), 1)
+        totals[ok] += 1
+
+    occ = counts / np.clip(totals, 1, None)
+    return rel_t, occ
 
 
 def forward_fraction_null(

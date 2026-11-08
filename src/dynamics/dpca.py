@@ -76,6 +76,66 @@ def balanced_conditions(
     return X, trialX, int(K)
 
 
+def balanced_by_label(
+    counts: np.ndarray,
+    cond: np.ndarray,
+    *,
+    seed: int = 0,
+    min_per_cell: int = 5,
+) -> tuple[np.ndarray, np.ndarray, int, np.ndarray]:
+    """Build dPCA's arrays for a **single categorical condition x time** design.
+
+    The general-purpose sibling of :func:`balanced_conditions` (which is hard-wired to the mouse's
+    2 stimulus x 2 decision design). Use it when the task has one categorical factor — e.g. the
+    monkey timing task, where the only trial-varying label is the animal's **produced interval**
+    (short vs long), there being no stimulus x choice factorial. Every level is subsampled down to
+    the smallest so dPCA does not average an unbalanced set of cells.
+
+    Parameters
+    ----------
+    counts : (n_trials, n_bins, n_units) raw counts.
+    cond   : (n_trials,) integer/label per trial. Levels with < ``min_per_cell`` trials abort.
+
+    Returns
+    -------
+    X : (n_units, C, n_bins)          trial-averaged, mean-centred over conditions
+    trialX : (K, n_units, C, n_bins)  K single trials per level (K = smallest level)
+    K : int                           trials per level -- REPORT THIS
+    levels : (C,) the level values, in the order used for the C axis
+
+    Fit with ``fit_dpca(X, trialX, labels="ct")`` (c = condition, t = time).
+    """
+    rng = np.random.default_rng(seed)
+    cond = np.asarray(cond)
+    levels = np.array(sorted(np.unique(cond[~_isnan(cond)])))
+    C = len(levels)
+    cells = {lv: np.flatnonzero(cond == lv) for lv in levels}
+    K = min(len(v) for v in cells.values())
+    if K < min_per_cell:
+        raise ValueError(
+            f"smallest condition cell has only {K} trials (< {min_per_cell}); too few for dPCA. "
+            f"Cell sizes: {{ {', '.join(f'{lv}: {len(v)}' for lv, v in cells.items())} }}"
+        )
+
+    n_trials, n_bins, n_units = counts.shape
+    trialX = np.empty((K, n_units, C, n_bins))
+    for ci, lv in enumerate(levels):
+        take = rng.choice(cells[lv], K, replace=False)
+        trialX[:, :, ci, :] = np.sqrt(counts[take].astype(float)).transpose(0, 2, 1)
+
+    X = trialX.mean(axis=0)                                     # (units, C, bins)
+    X -= X.reshape(n_units, -1).mean(axis=1)[:, None, None]     # dPCA wants it centred
+    return X, trialX, int(K), levels
+
+
+def _isnan(a: np.ndarray) -> np.ndarray:
+    """np.isnan that tolerates non-float dtypes (returns all-False for ints/objects)."""
+    a = np.asarray(a)
+    if np.issubdtype(a.dtype, np.floating):
+        return np.isnan(a)
+    return np.zeros(a.shape, dtype=bool)
+
+
 def fit_dpca(X: np.ndarray, trialX: np.ndarray, *, n_components: int = 4,
              labels: str = "sdt", protect: tuple[str, ...] = ("t",), regularizer=None):
     """Fit dPCA. Returns ``(model, Z)`` where ``Z[key]`` is (n_components, 2, 2, n_bins).
@@ -110,6 +170,9 @@ def variance_by_marginalization(model) -> "object":
 
 MARGINALIZATION_NAMES = {
     "t": "time (condition-independent)",
+    "c": "condition",
+    "ct": "condition x time",
+    "tc": "condition x time",
     "s": "stimulus",
     "d": "decision",
     "sd": "stimulus x decision",
