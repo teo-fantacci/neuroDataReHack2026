@@ -45,3 +45,36 @@ on 92 % of trials by +0.8 s → the `firstMovement`-aligned tensors exist for ex
 
 Nothing here changes the pipeline; the notebook was re-executed clean (0 errors) so its committed
 outputs are trustworthy this time.
+
+---
+
+## Update (2026-07-16) — `00` is now the **visual data-inspection** notebook
+
+Reworked §7–§10 into a coherent "first look at the data" block. Every figure has a meaningful
+title and an italic one-line caption below it (`fig.text`, so it travels with the saved PNG);
+figures land in `results/figures/smoketest/`. Re-executed end-to-end, **0 errors**.
+
+- **§7 · PSTH per area (juxtaposed)** — unchanged content, now captioned; the ±1 SEM-across-trials
+  band and per-panel annotation stay.
+- **§8 · Spike rasters, two cuts.**
+  - **8a neurons × time, one example trial** (`region_event_spikes`): the whole population in a
+    single high-contrast correct trial, one column per area. Shows VISp sparse, SCm/MRN dense.
+  - **8b trials × time, one example neuron** via **pynapple `compute_perievent`**, rows sorted by
+    RT. ⚠️ **Pick the example unit by task *modulation*, not raw rate** — the most-active SCm/MRN
+    units fire so densely the raster is a solid black block. `most_modulated_unit` scores
+    `(peak−base)/(base+2)` and skips units with baseline ≥ 12 Hz. With that, all three areas show a
+    clean band that **bends along the RT curve → movement-locked**, the visual form of the
+    project-wide "the window is a movement window" caveat.
+- **§9 · Two pynapple plots** (the "we used what the hackathon suggested" beat): **SCm↔MRN
+  cross-correlogram** (sharp zero-lag peak → common drive, reproduces 2026-07-12 §6c on the real
+  triplet-session data) and **contrast tuning** (SCm tracks |contrast|, MRN flatter, VISp sparse).
+  Both via the existing `src/viz/nap_plots.py` helpers. Cross-correlogram over all SCm×MRN pairs
+  takes ~35 s.
+- **§10 · Decoder decluttered** from a 2×3-with-text-panel to a clean **2×2** (psychometric +
+  one panel per area); the "how to read it" prose moved to the §10 markdown + a caption. Same
+  numbers as the 07-15 run.
+
+Data-prep note: cell 21 now also derives `event_times`, `rt`, and `region_trains`
+(`region_spike_trains` per region) once, reused by every raster/pynapple cell. `keep_idx` maps a
+kept-tensor unit back to its `region_trains` key — needed so the example-neuron raster plots the
+*same* unit the tensor scored.

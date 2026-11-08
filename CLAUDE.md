@@ -88,7 +88,8 @@ src/viz/     style.py (colour-vision-safe palette, stroke(), structured savefig)
 scripts/     run_phase1.py, run_hmm_triplet.py   (batch versions of the notebooks)
              install_ssm_env.sh (builds the ndrh_ssm env), run_rslds_ssm.py (runs INSIDE it)
              validate_hmm_vs_dynamax.py
-notebooks/   00_preprocessing (pipeline entry), 00_data_smoketest (Phase-0 access check),
+notebooks/   00_preprocessing (pipeline entry), 00_data_smoketest (Phase-0 access check +
+             VISUAL DATA-INSPECTION notebook: per-area PSTHs, spike rasters, pynapple plots, decoder),
              01_hmm_triplet, 02_dimred_msr, 03_rslds_triplet, 04_manifold_dpca_gpfa_rrr (legacy,
              merged into 02), 05_hmm_summary (write-up), 06_results_visualization
 docs/project_notes/  static scientific plan
