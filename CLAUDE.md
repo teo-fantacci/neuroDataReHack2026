@@ -77,7 +77,7 @@ of a 6 GB MSVC install). The notebook stays in `neurodatarehack` and calls it **
 
 ```
 config/      areas.yaml, params.yaml (bins, HMM, reproducibility pins, cache dir)
-src/data/    access.py (ONE + brainwidemap), build_matrices.py (tensor/rasters/stats/
+src/data/    access.py (ONE + brainwidemap), load_nwb.py (same session from DANDI NWB), build_matrices.py (tensor/rasters/stats/
              region_spike_trains), select_areas.py (Phase 1 co-occurrence)
 src/dynamics/ hmm.py    (Poisson HMM, baseline-biased startprob, CV of K, directedness)
              rslds.py    (OUR exact-EM rSLDS on a PCA latent + sequence statistics)
@@ -140,6 +140,12 @@ Gotchas found by running it (v0.11.3):
 - **Repo prepared for sharing (2026-11-08)**: MIT `LICENSE`, pinned `requirements.txt`, `tests/` +
   CI, README with key-result figures, notebooks renumbered by phase. Presentation only — no result
   changed. Regions/session frozen in `config/areas.yaml` (`{VISp, SCm, MRN}`, `5c0c560e`).
+- **NWB route (2026-11-08)**: `src/data/load_nwb.py` streams a session from DANDI:000409 and returns
+  the same `(trials, mask, probe_loads)` as ONE. A documented ALTERNATIVE, not the analysis route:
+  spikes are bit-identical, but the NWB trials table differs slightly, so each route keeps one trial
+  the other drops and movement-aligned tensors shift a few % of spikes. See
+  `docs/knowledge/nwb_vs_one_comparison.md`. pynwb trap: `units["spike_times"]` is the ragged
+  INDEX; the times are `units["spike_times_index"].target`.
 - **Phase 4 — monkey dataset (2026-07-16/17)**: DANDI:000620 (FEF + DMFC, working memory), from a
   preprocessed pickle shared by a colleague (call them "colleague D." in public files). One session
   so far: DMFC K=3 maintain-then-switch; FEF looks flat because of across-session DRIFT (a

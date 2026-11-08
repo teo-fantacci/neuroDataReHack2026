@@ -93,7 +93,7 @@ Practical impact is negligible: spike times (30 kHz probe clock) and behavioural
 from different clocks, so an exact coincidence essentially never happens. Recorded so nobody is
 surprised; changing it would change the binning code, which this session was not allowed to do.
 
-## 5. NWB / DANDI route — verified, loader not yet built
+## 5. NWB / DANDI route — loader built as a documented alternative
 
 - All five triplet sessions are in **DANDI:000409** as processed NWB (0.6–2 GB each): `sub-NR-0028`
   (`5c0c560e`), `sub-CSH-ZAD-025` (`90c61c38`), `sub-UCLA033` (`111c1762`), `sub-DY-010`
@@ -105,16 +105,32 @@ surprised; changing it would change the binning code, which this session was not
   present. So the spike sorting is the same one the paper froze.
 - The NWB trials table (1,100 trials) uses NeuroConv names: `gabor_stimulus_onset_time`
   (stimOn), `wheel_movement_onset_time` (firstMovement), `mouse_wheel_choice`, `is_mouse_rewarded`,
-  `probability_left`, `quiescence_period`. A loader would have to reproduce the paper's trial mask
-  from these.
+  `probability_left`, `quiescence_period`.
 
-**Open (author's decision):** build an NWB loader that reproduces the frozen tensors exactly and is
-tested against them, or keep ONE as the only route and document NWB as an alternative.
+**Decision (author): option B**, a loader that returns the same structures as the ONE route, with
+the differences measured rather than required to vanish. An exact match (option A) turned out to be
+impossible with this data, not just slow: spike times are bit-identical, but the NWB trials table
+differs from ONE's on a few event times.
+
+- `src/data/load_nwb.py`: DandiAPIClient → remfile → h5py → pynwb (`load_namespaces=True`), the
+  pattern in the pynwb streaming tutorial and CatalystNeuro's IBL-to-NWB README. Trials renamed to
+  ALF names; the mask is computed by `brainwidemap.load_trials_and_mask` itself (it accepts a
+  pre-loaded table); units = `ibl_quality_score >= 1`, Beryl from `max_electrode` →
+  `ElectrodesIBLBregma.beryl_location`. Trap found on the way: in pynwb, `units["spike_times"]`
+  returns the ragged **index**, not the times; read `units["spike_times_index"].target`.
+- `scripts/compare_nwb_vs_one.py` → `results/nwb_vs_one/5c0c560e.json`. Result: **stimulus-aligned
+  tensors bit-identical on the 842 shared trials**; each route keeps one trial the other drops
+  (66 and 827); movement-aligned tensors differ in 0.4–2.4 % of entries (≤ 2 spikes) because
+  movement onsets differ by ~0.4 ms. The two big trial-table differences (trial 66 stimulus onset,
+  trial 1099 feedback) look like anomalies in the **ONE** table. Full write-up:
+  [`nwb_vs_one_comparison.md`](../knowledge/nwb_vs_one_comparison.md).
+- Tests: fast mapping tests in `tests/test_load_nwb.py`; one slow network test streams the session.
 
 ## 6. TODO
 
 - **Citation and contact section** for the README (and a `CITATION.cff`): deferred by the author.
-- Decide the NWB loader (§5).
+- Report the two ONE trial-table anomalies (§5) to IBL.
+- Run `compare_nwb_vs_one.py` on the four replicate sessions (only `5c0c560e` was compared).
 - The rSLDS strand still runs on the `pre400` tensors while the rest uses `pre300` (open since
   2026-07-16).
 - The FEF drift diagnostics (2026-07-17) and the PSTH checks cite scripts that only existed in a
