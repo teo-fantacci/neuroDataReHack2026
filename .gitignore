@@ -8,6 +8,9 @@ venv/
 # ---- Jupyter ----
 .ipynb_checkpoints/
 
+# ---- Tests ----
+.pytest_cache/
+
 # ---- Data (never commit; ONE caches to disk, can reach many GB) ----
 # Leading slash = repo root only. WITHOUT it, this pattern also swallows src/data/.
 # Keep the empty data/ folder in the tree, ignore everything downloaded into it.
