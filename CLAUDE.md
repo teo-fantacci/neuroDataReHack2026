@@ -88,10 +88,18 @@ src/viz/     style.py (colour-vision-safe palette, stroke(), structured savefig)
 scripts/     run_phase1.py, run_hmm_triplet.py   (batch versions of the notebooks)
              install_ssm_env.sh (builds the ndrh_ssm env), run_rslds_ssm.py (runs INSIDE it)
              validate_hmm_vs_dynamax.py
-notebooks/   01_preprocessing (pipeline entry), 00_data_smoketest (Phase-0 access check +
-             VISUAL DATA-INSPECTION notebook: per-area PSTHs, spike rasters, pynapple plots, decoder),
-             02_hmm_triplet, 04_dimred_msr, 03_rslds_triplet, 05_manifold_dpca_gpfa_rrr (legacy,
-             merged into 02), 09_hmm_summary (write-up), 10_results_visualization
+notebooks/   numbered in RUN ORDER, grouped by the plan's phases (renumbered 2026-11-08):
+             P0 00_data_smoketest (access check + VISUAL DATA-INSPECTION: PSTHs, rasters, decoder),
+                01_preprocessing (pipeline entry) · P1 has no notebook (scripts/run_phase1.py)
+             P2 02_hmm_triplet, 03_rslds_triplet · P3 04_dimred_msr, 05_manifold_dpca_gpfa_rrr (legacy,
+                merged into 04) · P4 (monkey) 06_monkey_data_colleagueD, 07_monkey_hmm, 08_monkey_dimred
+             P5 09_hmm_summary (write-up), 10_results_visualization
+             Worklogs dated before 2026-11-08 use the OLD names (mapping in docs/worklog/README.md).
+             Figure folders follow the same phases: phase0_preproc, phase2_hmm/_rslds*, phase3_*, phase5_viz.
+tests/       pytest suite (2026-11-08): `pytest` = fast, offline, synthetic (~15 s, what CI runs);
+             `pytest -m slow` = full rSLDS ground-truth sweep + the ndrh_ssm bridge (~6 min).
+.github/     workflows/tests.yml — CI runs the fast suite on Python 3.11 with pinned requirements.
+docs/figures/ the 3 small PNGs embedded in the README (the only committed PNGs; see .gitignore).
 docs/project_notes/  static scientific plan
 docs/knowledge/      recorded_areas_IBL_SHIELD.md (areas, full names, functions)
 docs/worklog/        dated session logs (READ THESE for current state)
@@ -124,11 +132,23 @@ Gotchas found by running it (v0.11.3):
 
 ## Current state (keep this section current; details in the latest worklog)
 
+- **⚠️ GIT HISTORY WAS REWRITTEN (2026-11-08)** to remove personal text from early commits
+  (`git filter-repo`; dates, authors and messages preserved, every hash changed). On any OTHER
+  machine with an older clone: **do not `git pull` or push from it.** Re-clone, or run
+  `git fetch origin && git reset --hard origin/main` on a clean tree. Pushing an old clone would
+  put the removed text back on GitHub. See `docs/worklog/2026-11-08_github-cleanup-for-sharing.md`.
+- **Repo prepared for sharing (2026-11-08)**: MIT `LICENSE`, pinned `requirements.txt`, `tests/` +
+  CI, README with key-result figures, notebooks renumbered by phase. Presentation only — no result
+  changed. Regions/session frozen in `config/areas.yaml` (`{VISp, SCm, MRN}`, `5c0c560e`).
+- **Phase 4 — monkey dataset (2026-07-16/17)**: DANDI:000620 (FEF + DMFC, working memory), from a
+  preprocessed pickle shared by a colleague (call them "colleague D." in public files). One session
+  so far: DMFC K=3 maintain-then-switch; FEF looks flat because of across-session DRIFT (a
+  limited-drift block recovers within-trial states). Worklogs 2026-07-16/17.
 - **Preprocessing is UNIFIED (2026-07-14)** — `src/data/preprocess.py` + `notebooks/01_preprocessing.ipynb`.
   Every model now eats the same frozen tensors (`data/processed/*.npz`, config serialised inside).
-  **stimOn + firstMovement alignment, `pre_s` 0.4 s, `post_s` 0.8 s, 40 ms bins (default since
-  2026-07-15), units ≥ 1 Hz**. `pre_s=0.4` because IBL's enforced **quiescence period** is drawn
-  from [0.400, 0.700] s — 0.5 s stepped outside it on 44% of trials. `02_hmm_triplet.ipynb` reads
+  **stimOn + firstMovement alignment, `pre_s` 0.3 s (0.4 s until 2026-07-16), `post_s` 0.8 s,
+  40 ms bins (default since 2026-07-15), units ≥ 1 Hz**. `pre_s` sits inside IBL's enforced
+  **quiescence period**, drawn from [0.400, 0.700] s — 0.5 s stepped outside it on 44% of trials. `02_hmm_triplet.ipynb` reads
   `load_processed(...)`; notebooks 03–05 still build their own tensors and must be pointed at it.
 - **ALL 5 TRIPLET SESSIONS BUILT AT 40 ms (2026-07-15)** — `scripts/build_processed_all.py`
   downloaded + preprocessed every `{VISp,SCm,MRN}` session (5c0c560e 843 tr / 90c61c38 656 /

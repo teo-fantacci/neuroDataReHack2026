@@ -55,7 +55,7 @@ step. Fixed in the README setup section and the `rslds_ssm.py` module header (al
 explains why `conda run` fails on Windows).
 
 ## Committed + pushed
-`fba432f` — "Phase 2-3 analysis + cleanup for sharing" → `origin/main` (71 files, +17152 / −560).
+`0c10ece` — "Phase 2-3 analysis + cleanup for sharing" → `origin/main` (71 files, +17152 / −560).
 Bundles this session's hygiene with **all** the previously-uncommitted Phase 2–3 work: unified
 preprocessing, the HMM / rSLDS / dPCA / GPFA / RRR modules + their notebooks + batch scripts, the
 `docs/knowledge/` teaching notes, and the 07-12→07-15 worklogs.
