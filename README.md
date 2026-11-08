@@ -105,14 +105,14 @@ cross-check, once and without admin rights: `bash scripts/install_ssm_env.sh`.
 
 ```bash
 pytest            # fast suite, about 15 s, synthetic data only, no downloads (this is what CI runs)
-pytest -m slow    # full validations: rSLDS ground-truth sweep and the optional ssm bridge, about 6 min
+pytest -m slow    # full validations: rSLDS ground-truth sweep, the optional ssm bridge, DANDI streaming
 ```
 
 The suite turns the project's two validation scripts into tests. Our HMM must score data exactly
 as an independent implementation does: [dynamax](https://github.com/probml/dynamax), to machine
 precision. The rSLDS must recover a planted three-state sequence at the project's 40 ms bin without
 inventing a line attractor. Unit tests cover binning, the frozen preprocessing configuration and its
-`.npz` round trip, the HMM read-outs, RRR and MSR.
+`.npz` round trip, the HMM read-outs, RRR, MSR, and the mapping from NWB trial columns to IBL's.
 
 ## Data
 
@@ -127,9 +127,8 @@ credentials.
   440 MB into `data/ONE/` on first run.
 - **The same five sessions are on DANDI as NWB files** in
   [DANDI:000409](https://dandiarchive.org/dandiset/000409), created with NeuroConv. For the working
-  session we checked that all units in the NWB units table carry the same IBL cluster UUIDs as the
-  paper's unit tables, so the spike sorting is identical. The analysis currently reads data
-  through ONE; an NWB loader is a planned addition.
+  session all units in the NWB units table carry the same IBL cluster UUIDs as the paper's unit
+  tables, and their spike times are bit-identical to ONE's.
 
   | Session | DANDI subject | Role |
   |---|---|---|
@@ -139,6 +138,26 @@ credentials.
   | `90d1e82c` | `sub-DY-010` | replicate |
   | `8a3a0197` | `sub-UCLA034` | replicate |
 
+- **Reading a session from DANDI instead of ONE.** [`src/data/load_nwb.py`](src/data/load_nwb.py)
+  streams the NWB file with the pattern the NWB and DANDI docs recommend (`DandiAPIClient`,
+  `remfile`, `h5py`, `pynwb`) and returns the same objects as the ONE route, so the preprocessing
+  runs unchanged:
+
+  ```python
+  from src.data.load_nwb import load_session_nwb
+  from src.data.preprocess import PreprocessConfig, align_times, preprocess_session
+
+  cfg = PreprocessConfig()   # stimulus-aligned, 40 ms bins, -0.3 to +0.8 s, units >= 1 Hz
+  trials, mask, probe_loads = load_session_nwb("5c0c560e-9e1f-45e9-b66e-e4ee7855be84",
+                                               cfg=cfg, regions=list(cfg.regions))
+  data = preprocess_session(probe_loads, align_times(trials, mask, cfg.align_event), cfg)
+  ```
+
+  The two routes do not give bit-identical tensors: the NWB trials table differs from ONE's on a
+  few event times, which changes which trials pass the paper's reaction-time limits. The ONE route
+  is the one behind every result here. The differences are measured in
+  [`docs/knowledge/nwb_vs_one_comparison.md`](docs/knowledge/nwb_vs_one_comparison.md)
+  (`scripts/compare_nwb_vs_one.py` regenerates them).
 - **Second dataset (phase 4):** macaque frontal cortex during a multi-object working-memory task,
   [DANDI:000620](https://dandiarchive.org/dandiset/000620) (Watters, Gabel, Tenenbaum and Jazayeri).
   The notebooks read a preprocessed spike-time file derived from it that a colleague shared; it

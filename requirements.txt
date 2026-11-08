@@ -44,6 +44,13 @@ pynapple==0.11.3
 remfile==0.1.13
 h5py==3.16.0
 
+# ---- NWB route to the same IBL sessions on DANDI:000409 (src/data/load_nwb.py) ----
+# The streaming pattern the NWB/DANDI docs and CatalystNeuro's IBL-to-NWB README use:
+# DandiAPIClient -> remfile -> h5py -> pynwb.NWBHDF5IO(load_namespaces=True).
+pynwb==4.0.0
+hdmf==6.1.0
+dandi==0.76.7
+
 # ---- Independent HMM implementation, used to VALIDATE ours ----
 # dynamax (Linderman lab, JAX, maintained). Verified 2026-07-12: given hmmlearn's exact
 # fitted params, dynamax reproduces the held-out log-likelihood to machine precision
