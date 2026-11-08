@@ -142,7 +142,7 @@ called out-of-process). First real fit ran end-to-end at 40 ms, both alignments.
 
 ### 2.4 Dimensionality reduction / geometry — 🔶 the strongest leads live here
 
-Runs on the unified 40 ms pipeline in `02_dimred_msr.ipynb` (04's results merged in and re-run at
+Runs on the unified 40 ms pipeline in `04_dimred_msr.ipynb` (05's results merged in and re-run at
 40 ms — every number reproduced the 50 ms values, so none is a bin-size artefact).
 
 - **🔶 dPCA reproduces the project's core prediction.** Decision − stimulus variance runs

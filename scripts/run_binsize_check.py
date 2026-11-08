@@ -21,7 +21,7 @@ What is measured, at the K chosen by the ARI stability analysis (VISp 3, SCm 4, 
                              returned NaN in 2 of 3 regions).
 
 Cost: 4 bin sizes x 3 regions x (1 fit + stability). Expect tens of minutes.
-Writes results/hmm/binsize_check.json, which notebooks/00_preprocessing.ipynb plots.
+Writes results/hmm/binsize_check.json, which notebooks/01_preprocessing.ipynb plots.
 """
 
 from __future__ import annotations

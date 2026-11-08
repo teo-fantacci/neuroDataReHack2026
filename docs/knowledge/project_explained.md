@@ -14,7 +14,7 @@ Related docs (deeper or complementary):
 [`choosing_K_for_the_HMM.md`](choosing_K_for_the_HMM.md),
 [`ARI_and_state_stability.md`](ARI_and_state_stability.md),
 [`best_K_per_region.md`](best_K_per_region.md).
-Code + figures: `src/data/preprocess.py`, `notebooks/00_preprocessing.ipynb`,
+Code + figures: `src/data/preprocess.py`, `notebooks/01_preprocessing.ipynb`,
 `results/figures/phase0_preproc/`.
 
 > **A note on honesty.** Several of my first answers in this thread were *wrong* and got corrected
@@ -26,7 +26,7 @@ Code + figures: `src/data/preprocess.py`, `notebooks/00_preprocessing.ipynb`,
 # Part 1 — Preprocessing & the HMM
 
 The overarching thing you asked for: **one preprocessing function, one frozen dataset, so every
-model eats the same data.** That is now `src/data/preprocess.py` + `notebooks/00_preprocessing.ipynb`,
+model eats the same data.** That is now `src/data/preprocess.py` + `notebooks/01_preprocessing.ipynb`,
 which write frozen tensors to `data/processed/*.npz` with the config serialised *inside* the file
 (so a tensor can never be mis-described later). Everything below is a decision that function bakes
 in, plus the HMM questions.
@@ -199,7 +199,7 @@ The frozen tensors are built at 40 ms (30 bins over the window).
 
 ## 4. The baseline window, and the length after onset
 
-**Your question:** is 0.5 s pre-stimulus a good baseline, or shorter like 0.3? (And the plots in `01`
+**Your question:** is 0.5 s pre-stimulus a good baseline, or shorter like 0.3? (And the plots in `02`
 disagreed — some showed 0.5, some 0.3; make it consistent.) Sub-question: why 0.8 s after onset — is
 that the average trial length?
 

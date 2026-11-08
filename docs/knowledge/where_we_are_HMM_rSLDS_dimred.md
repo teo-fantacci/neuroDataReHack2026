@@ -29,7 +29,7 @@ Units are VISp / SCm / MRN throughout.
 
 ⚠️ **Those three rows are not the same preprocessing, and two of the differences are
 accidents rather than decisions.** The rSLDS notebook reads `pre_s` from
-`config/params.yaml` (**0.2 s**) while notebooks 01/02/04 hard-code **0.5 s**; and the HMM
+`config/params.yaml` (**0.2 s**) while notebooks 02/04/05 hard-code **0.5 s**; and the HMM
 filters units at ≥ 1 Hz while the other two do not. See §5 — this matters most for the K
 hand-off, which is the main bridge between topics 1 and 2.
 
@@ -37,7 +37,7 @@ hand-off, which is the main bridge between topics 1 and 2.
 
 ## 1. The HMM — *where* the population is
 
-Code: `src/dynamics/hmm.py` · Notebook: `01_hmm_triplet.ipynb` · Method notes:
+Code: `src/dynamics/hmm.py` · Notebook: `02_hmm_triplet.ipynb` · Method notes:
 [`choosing_K_for_the_HMM.md`](choosing_K_for_the_HMM.md),
 [`ARI_and_state_stability.md`](ARI_and_state_stability.md),
 [`best_K_per_region.md`](best_K_per_region.md)
@@ -414,20 +414,20 @@ and it is currently **stale**: see §5.
 ## 3. Dimensionality reduction — *what shape* the activity has, and *what causes* it
 
 Code: `src/geometry/{embed,joint}.py`, `src/dynamics/{dpca,gpfa,rrr}.py`, `src/selection/msr.py`
-· Notebooks: `02_dimred_msr.ipynb`, `04_manifold_dpca_gpfa_rrr.ipynb` · Worklogs:
+· Notebooks: `04_dimred_msr.ipynb`, `05_manifold_dpca_gpfa_rrr.ipynb` · Worklogs:
 [MSR + dim-red](../worklog/2026-07-13_msr-and-dimred.md),
 [dPCA/GPFA/RRR/manifold](../worklog/2026-07-13_dpca-gpfa-rrr-manifold.md)
 
 This "topic" is really **five different questions**. Keeping them separate is the point.
 
-> **Notebook 02 was cleaned and then made the consolidated dim-red notebook (2026-07-15).** It
+> **Notebook 04 was cleaned and then made the consolidated dim-red notebook (2026-07-15).** It
 > runs on the **unified 40 ms pipeline** (`data/processed/…bin40…npz`) and shows **PCA, dPCA,
 > MDS, Laplacian eigenmaps in 3-D, coloured by time** (all units vs MSR-top; post-stimulus +
 > full-window diverging view, blue = baseline, red = evoked). **04's scientific results are now
 > merged into 02 §6–9** (dPCA variance split, GPFA, RRR, joint manifold), re-run on the same
 > 40 ms tensor — every one reproduced the 50 ms numbers below, so none is a bin-size artefact.
 > The MSR validation battery / decoding / choice-coloured maps were dropped (retained in §3.6 +
-> worklog). Notebook 04 now only uniquely holds the bin×smoothing sweep and the 7-method
+> worklog). Notebook 05 now only uniquely holds the bin×smoothing sweep and the 7-method
 > quality zoo; it is a retirement candidate.
 
 ### 3.1 The embedding zoo — *illustration*, mostly not evidence
@@ -815,7 +815,7 @@ notebook must be updated to VISp = 3 before any rSLDS pass is treated as real.**
 `order_consistency` has exactly *one* regime pair and cannot express a sequence at all.
 
 **5.2 ⚠️ The rSLDS uses a different trial window from everything else.** Notebook 03 reads
-`pre_s` from `config/params.yaml` (**0.2 s**); notebooks 01/02/04 hard-code **0.5 s**. So the
+`pre_s` from `config/params.yaml` (**0.2 s**); notebooks 02/04/05 hard-code **0.5 s**. So the
 rSLDS sees a 1.0 s window with a 0.2 s baseline, while the HMM that *chose its K* saw 1.3 s with
 a 0.5 s baseline. This should be made deliberate (pick one, write it in the config, and have all
 four notebooks read it) rather than left as an accident of which notebook reads which source.

@@ -79,11 +79,11 @@ bash scripts/install_ssm_env.sh        # builds ndrh_ssm via conda's mingw toolc
 
 Every model eats the same frozen tensors, so preprocessing runs first:
 
-1. **[`notebooks/00_preprocessing.ipynb`](notebooks/00_preprocessing.ipynb)** — builds the frozen
+1. **[`notebooks/01_preprocessing.ipynb`](notebooks/01_preprocessing.ipynb)** — builds the frozen
    `data/processed/*.npz` tensors (stimOn **and** firstMovement alignment, `pre` 0.4 s, `post`
    0.8 s, **40 ms bins**, units ≥ 1 Hz). Config is serialised inside each `.npz`.
-2. **[`01_hmm_triplet`](notebooks/01_hmm_triplet.ipynb)** → state sequences and directedness.
-3. **[`02_dimred_msr`](notebooks/02_dimred_msr.ipynb)** → geometry (PCA / dPCA / GPFA / RRR / joint
+2. **[`02_hmm_triplet`](notebooks/02_hmm_triplet.ipynb)** → state sequences and directedness.
+3. **[`04_dimred_msr`](notebooks/04_dimred_msr.ipynb)** → geometry (PCA / dPCA / GPFA / RRR / joint
    manifold).
 4. **[`03_rslds_triplet`](notebooks/03_rslds_triplet.ipynb)** → the attractor-sequence tests.
 
@@ -96,14 +96,14 @@ fresh machine, gated behind `DOWNLOAD = False`.
 
 | Notebook | Does | Status |
 |---|---|---|
-| `00_preprocessing` | Builds the frozen `.npz` tensors every model reads | **current — run first** |
+| `01_preprocessing` | Builds the frozen `.npz` tensors every model reads | **current — run first** |
 | `00_data_smoketest` | Phase-0 data-access sanity check (openalyx → tensor → HMM) | current (entry check) |
-| `01_hmm_triplet` | Poisson HMM: state sequences, `forward_fraction`, K by stability | **current** |
-| `02_dimred_msr` | Consolidated geometry: PCA/dPCA/MDS/Laplacian (3-D) + GPFA/RRR/joint manifold + MSR | **current** |
+| `02_hmm_triplet` | Poisson HMM: state sequences, `forward_fraction`, K by stability | **current** |
+| `04_dimred_msr` | Consolidated geometry: PCA/dPCA/MDS/Laplacian (3-D) + GPFA/RRR/joint manifold + MSR | **current** |
 | `03_rslds_triplet` | rSLDS (exact-EM + `ssm`): recurrence test, order-consistency | **current** |
-| `04_manifold_dpca_gpfa_rrr` | dPCA/GPFA/RRR/manifold | legacy — results merged into `02`; kept for the bin×smoothing sweep + method zoo |
-| `05_hmm_summary` | HMM strand write-up: what we tested, what failed, what replicates | write-up (no heavy outputs) |
-| `06_results_visualization` | Regime-sequence animation / final viz | current (viz) |
+| `05_manifold_dpca_gpfa_rrr` | dPCA/GPFA/RRR/manifold | legacy — results merged into `04`; kept for the bin×smoothing sweep + method zoo |
+| `09_hmm_summary` | HMM strand write-up: what we tested, what failed, what replicates | write-up (no heavy outputs) |
+| `10_results_visualization` | Regime-sequence animation / final viz | current (viz) |
 
 ### Source (`src/`)
 

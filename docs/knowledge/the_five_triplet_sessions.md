@@ -145,7 +145,7 @@ we are not using it. Two distinct things to decide, and they should not be confl
 *nominal* side label and a real choice. Three defensible treatments, and they answer
 different questions:
   - **exclude** — the clean "stimulus" factor (what we called K_visible above);
-  - **keep, labelled by nominal side** — what notebook 04 does now, which quietly redefines
+  - **keep, labelled by nominal side** — what notebook 05 does now, which quietly redefines
     "stimulus" as "side the trial was scored against" and pads the error cells with guesses;
   - **treat as their own condition** — arguably the *most interesting* option: a 0 %-contrast
     trial is a **choice without a stimulus**. If the metastable sequence still runs on those

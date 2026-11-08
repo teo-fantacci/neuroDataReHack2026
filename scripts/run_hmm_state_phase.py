@@ -57,7 +57,7 @@ OUT = ROOT / "results" / "hmm"
 FIG_PHASE = "hmm_state_phase"
 
 REGIONS = ["VISp", "SCm", "MRN"]
-K_PER_REGION = {"VISp": 3, "SCm": 3, "MRN": 3}   # frozen common-K result (05_hmm_summary)
+K_PER_REGION = {"VISp": 3, "SCm": 3, "MRN": 3}   # frozen common-K result (09_hmm_summary)
 PHASE_NAMES = ["pre-stim", "stim->move", "post-move"]
 SEED, N_ITER, N_SHUFFLES = 0, 50, 200
 

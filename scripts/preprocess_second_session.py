@@ -1,5 +1,5 @@
 """Download the second triplet session (111c1762) and freeze it through the SAME
-preprocessing pipeline as the working session. Mirrors notebooks/00_preprocessing.ipynb
+preprocessing pipeline as the working session. Mirrors notebooks/01_preprocessing.ipynb
 cell 23, so the two sessions are guaranteed to be processed identically.
 
 Run once. Downloads ~hundreds of MB of spike sorting on first call (cached in data/ONE/).
@@ -39,7 +39,7 @@ print("\nUNIT YIELD vs rate threshold (is the 1 Hz cut still ~free here?)")
 ev0 = align_times(trials, mask, "stimOn_times")
 print(unit_yield_table(probe_loads, ev0, PreprocessConfig()).to_string(index=False))
 
-# --- freeze both alignments, exactly as notebook 00 does --------------------------------
+# --- freeze both alignments, exactly as notebook 01 does --------------------------------
 OUT = ROOT / "data" / "processed"
 written = []
 for align in ("stimOn_times", "firstMovement_times"):

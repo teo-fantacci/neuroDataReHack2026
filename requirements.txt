@@ -82,14 +82,14 @@ dynamax
 # grid) and its ELBO is a lower bound, not a likelihood you can safely argmax.
 
 # ---- Phase 3: geometry / dimensionality reduction ----
-# Added 2026-07-13 for notebooks/02_dimred_msr.ipynb. Dry-run verified additive BEFORE
+# Added 2026-07-13 for notebooks/04_dimred_msr.ipynb. Dry-run verified additive BEFORE
 # installing (the ssm lesson): umap-learn pulls only pynndescent; phate pulls graphtools,
 # pygsp, tasklogger. Neither downgrades numpy 2.3.5 / numba 0.66 / scikit-learn 1.9.
 # PCA/MDS/t-SNE/Isomap/Laplacian come from scikit-learn, already pinned above.
 umap-learn
 phate       # diffusion-based; the nonlinear method actually built for TRAJECTORIES
 
-# Added 2026-07-13 for notebooks/04_manifold_dpca_gpfa_rrr.ipynb. Both dry-run-verified
+# Added 2026-07-13 for notebooks/05_manifold_dpca_gpfa_rrr.ipynb. Both dry-run-verified
 # additive, then SMOKE-TESTED (installing != working: dPCA is from 2016 and runs fine on
 # numpy 2.3.5, but has an UNDECLARED dependency on numexpr -- it ImportErrors without it).
 dPCA        # Kobak et al. 2016: splits variance into time / stimulus / decision components

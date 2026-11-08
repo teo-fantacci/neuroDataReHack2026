@@ -4,16 +4,16 @@ Why this module exists
 ----------------------
 Until now each notebook built its own tensors, and they silently disagreed:
 
-* ``01_hmm``      : window [-0.5, +0.8] s, 20 ms bins, units >= 1 Hz
+* ``02_hmm``      : window [-0.5, +0.8] s, 20 ms bins, units >= 1 Hz
 * ``03_rslds``    : window [-0.2, +0.8] s (it read ``params.yaml``), 20 + 50 ms, ALL units
-* ``02`` / ``04`` : window [-0.5, +0.8] s, 50 ms bins, ALL units
+* ``04`` / ``05`` : window [-0.5, +0.8] s, 50 ms bins, ALL units
 
 So "K from the HMM" was handed to an rSLDS fitted on a different window and a different unit
 set, and nobody had written that down. This module is the single place the choice is made.
 
 The decisions, and the evidence for each
 ----------------------------------------
-Measured on session ``5c0c560e`` (843 usable trials) -- see ``notebooks/00_preprocessing.ipynb``,
+Measured on session ``5c0c560e`` (843 usable trials) -- see ``notebooks/01_preprocessing.ipynb``,
 which produces every number below and the figures behind them.
 
 **pre_s = 0.3 s (updated 2026-07-16).** IBL enforces a *quiescence period* (the wheel must be
@@ -149,7 +149,7 @@ def anscombe(counts: np.ndarray) -> np.ndarray:
     with ``c = 3/8`` the offset that cancels the leading 1/lambda term. So *asymptotically*
     every neuron's noise is one unit, whatever its rate.
 
-    Why it fails here (measured, not assumed -- see notebooks/00_preprocessing.ipynb, Part 2)
+    Why it fails here (measured, not assumed -- see notebooks/01_preprocessing.ipynb, Part 2)
     -----------------------------------------------------------------------------------------
     ``Var -> 1`` is a **large-lambda** result. On simulated Poisson it is reached only for
     **lambda >~ 4** spikes/bin. IBL runs at::
