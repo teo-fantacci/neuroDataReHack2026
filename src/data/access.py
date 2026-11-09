@@ -16,7 +16,7 @@ which downloads spike sorting for one probe insertion.
 
 References
 ----------
-IBL et al. 2025, Nature 645:177-189 (the Brain-Wide Map).
+IBL et al. 2025, Nature 645:177-191 (the Brain-Wide Map).
 """
 
 from __future__ import annotations

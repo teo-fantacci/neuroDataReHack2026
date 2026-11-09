@@ -211,6 +211,17 @@ The rule was that an agent's output is a claim to verify, not a result. Examples
 - **Replication over one good session.** A directedness effect of 0.83 in one session became 0.64
   once all five mice were fitted, and the README reports the pooled number.
 
+## How to cite and contact
+
+If this code or its results are useful to you, please cite the repository: GitHub's "Cite this
+repository" button uses [`CITATION.cff`](CITATION.cff). Please also cite the IBL Brain-Wide Map
+paper (IBL et al. 2025, *Nature* 645:177–191,
+[doi:10.1038/s41586-025-09235-0](https://doi.org/10.1038/s41586-025-09235-0)) and the
+[DANDI:000409](https://dandiarchive.org/dandiset/000409) dataset.
+
+**Contact:** Teo Fantacci, PhD candidate, Sant'Anna School of Advanced Studies, Pisa.
+teo.fantacci.job@protonmail.com
+
 ## License
 
 The code is released under the [MIT License](LICENSE). No data are included. The IBL Brain-Wide
