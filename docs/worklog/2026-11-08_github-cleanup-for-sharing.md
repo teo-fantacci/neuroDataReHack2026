@@ -27,7 +27,7 @@ before anything was replaced.
 - none of the removed strings occur anywhere in the new history.
 
 **Consequences.** Every commit hash changed (the one hash quoted in the docs, `fba432f`, is now
-`f33e3ed` and was updated). Any other clone must be re-cloned or hard-reset to the new
+`4caa4c1` and was updated). Any other clone must be re-cloned or hard-reset to the new
 `origin/main`, never pushed (see `CLAUDE.md`). GitHub can keep the old commits reachable by their
 old hashes until it garbage-collects them; removing them for certain needs a GitHub Support request
 or deleting and recreating the repository. The repo had no forks, stars or issues at the time.
@@ -38,9 +38,13 @@ only by someone who already has the old hashes.
 before the first push, found the same health detail once more, in a docstring in
 `src/viz/style.py`. It was reworded in every commit the same way (same verification: dates,
 authors and messages identical; each commit differs only in that file; old wording gone). Hashes
-changed again; the quoted hash above is the current one. Left as is, for the author to decide: the
-commit author e-mail (also quoted in the 2026-07-16 worklog), a grant mention in the
-project notes, and "PhD student (Italy)" in `CLAUDE.md`.
+changed again; the quoted hash above is the current one.
+
+**Third pass (2026-11-09), author's decisions on the remaining items.** The commit author e-mail
+stays (it is the author's work address). A grant mention in the project notes was removed from
+every commit the same way, and the notes now simply call the energy-landscape idea an optional
+follow-up. `CLAUDE.md` now says "PhD candidate". Hashes changed once more; the quoted hash above is
+current.
 
 The colleague who shared the monkey data is referred to as **"colleague D."** in all public files;
 their name never reached git history.
@@ -138,10 +142,11 @@ differs from ONE's on a few event times.
 
 ## 6. TODO
 
-- **Citation and contact section** for the README (and a `CITATION.cff`): deferred by the author.
-- Report the two ONE trial-table anomalies (§5) to IBL.
-- Run `compare_nwb_vs_one.py` on the four replicate sessions (only `5c0c560e` was compared).
-- The rSLDS strand still runs on the `pre400` tensors while the rest uses `pre300` (open since
-  2026-07-16).
+- ~~Citation and contact section~~: done 2026-11-09 (README section + `CITATION.cff`).
+- Report the two ONE trial-table anomalies (§5) to IBL: **draft written, not sent**
+  ([`ibl_trial_anomalies_report_draft.md`](../knowledge/ibl_trial_anomalies_report_draft.md)).
+- Running `compare_nwb_vs_one.py` on the four replicate sessions: **skipped** by the author.
+- **To be decided (needs further investigation):** the rSLDS strand still runs on the `pre400`
+  tensors while the rest uses `pre300` (open since 2026-07-16).
 - The FEF drift diagnostics (2026-07-17) and the PSTH checks cite scripts that only existed in a
   session scratchpad; promote them to `scripts/` if they become standing controls.

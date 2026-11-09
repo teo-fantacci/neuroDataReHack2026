@@ -15,7 +15,7 @@ pre-hackathon). Running decisions/findings: `docs/worklog/` (updated each sessio
 
 ## Who the user is, and how to work with them
 
-- PhD student (Italy), systems/computational neuroscience. Strong on the science; wants
+- PhD candidate (Italy), systems/computational neuroscience. Strong on the science; wants
   you to **explain what you do and why**, not just produce code. Answer conceptual
   questions in depth.
 - **Use colour-vision-safe figures.** NEVER rely on red-vs-green to
