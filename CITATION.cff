@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this code or its results, please cite it using the metadata below, and cite the IBL Brain-Wide Map paper and dataset it analyses."
+type: software
+title: "IBL Decision Dynamics: metastable state sequences along the visual-to-motor axis (NeuroDataReHack 2026)"
+authors:
+  - family-names: Fantacci
+    given-names: Teo
+    email: teo.fantacci.job@protonmail.com
+    affiliation: "Sant'Anna School of Advanced Studies, Pisa, Italy"
+repository-code: "https://github.com/teo-fantacci/neuroDataReHack2026"
+license: MIT
+date-released: "2026-11-09"
+keywords:
+  - neuroscience
+  - neural-dynamics
+  - hidden-markov-model
+  - rslds
+  - nwb
+  - dandi
+  - international-brain-laboratory
+references:
+  - type: article
+    authors:
+      - name: "International Brain Laboratory"
+    title: "A brain-wide map of neural activity during complex behaviour"
+    journal: Nature
+    volume: 645
+    issue: 8079
+    start: 177
+    end: 191
+    year: 2025
+    doi: 10.1038/s41586-025-09235-0
+  - type: dataset
+    authors:
+      - name: "International Brain Laboratory"
+    title: "IBL Brain-Wide Map (DANDI:000409)"
+    url: "https://dandiarchive.org/dandiset/000409"

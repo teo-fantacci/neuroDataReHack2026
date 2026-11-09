@@ -13,7 +13,7 @@ are the dynamics' job (HMM `forward_fraction`, rSLDS `order_consistency` / `delt
 dPCA and the dynamics are complementary halves of the same claim, and it is a category error to
 ask either to do the other's work.**
 
-Code: `src/dynamics/dpca.py` · run in `notebooks/02_dimred_msr.ipynb` §5–6.
+Code: `src/dynamics/dpca.py` · run in `notebooks/04_dimred_msr.ipynb` §5–6.
 
 ---
 

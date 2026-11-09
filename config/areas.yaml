@@ -1,7 +1,7 @@
 # Target brain regions (Beryl parcellation, as used by IBL).
 #
 # The candidate visual->motor axis comes from the literature review in
-# docs/project_notes/ (IBL et al. 2025, Nature 645:177-189).
+# docs/project_notes/ (IBL et al. 2025, Nature 645:177-191).
 # NOTHING here is frozen yet: Phase 1 prunes this list by *simultaneous*
 # co-recording yields and writes the chosen set into `selected`.
 

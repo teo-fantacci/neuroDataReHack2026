@@ -119,7 +119,7 @@ that is a concession:
 * PCA picks directions of **variance**, not directions the **dynamics** act on.
 * **Anscombe does not stabilise variance at IBL's firing rates.** It reaches Var = 1 only for
   lambda >~ 4 spikes/bin; IBL runs at lambda = 0.05-0.83 (see ``src/data/preprocess.py::anscombe``
-  and ``notebooks/00_preprocessing.ipynb`` Part 2). At lambda << 1 a count is essentially
+  and ``notebooks/01_preprocessing.ipynb`` Part 2). At lambda << 1 a count is essentially
   Bernoulli, and no monotone transform can stabilise a Bernoulli. So the "Gaussian latent" is a
   **smoothed Bernoulli**, and all of its continuity comes from the smoother.
 

@@ -1,6 +1,6 @@
 """Rebuild the frozen tensors at 40 ms (the unified bin), both alignments. Working session.
 
-Supersedes the 50 ms tensors written by notebooks/00_preprocessing.ipynb. 40 ms is now the
+Supersedes the 50 ms tensors written by notebooks/01_preprocessing.ipynb. 40 ms is now the
 project-wide bin: it passes the rSLDS ground truth in every region AND preserves SCm's HMM
 state-stability (which degraded at 50 ms). See docs/worklog/2026-07-14_preprocessing-unification.md.
 """

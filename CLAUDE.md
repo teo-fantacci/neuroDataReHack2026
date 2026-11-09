@@ -15,7 +15,7 @@ pre-hackathon). Running decisions/findings: `docs/worklog/` (updated each sessio
 
 ## Who the user is, and how to work with them
 
-- PhD student (Italy), systems/computational neuroscience. Strong on the science; wants
+- PhD candidate (Italy), systems/computational neuroscience. Strong on the science; wants
   you to **explain what you do and why**, not just produce code. Answer conceptual
   questions in depth.
 - **Use colour-vision-safe figures.** NEVER rely on red-vs-green to
@@ -77,7 +77,7 @@ of a 6 GB MSVC install). The notebook stays in `neurodatarehack` and calls it **
 
 ```
 config/      areas.yaml, params.yaml (bins, HMM, reproducibility pins, cache dir)
-src/data/    access.py (ONE + brainwidemap), build_matrices.py (tensor/rasters/stats/
+src/data/    access.py (ONE + brainwidemap), load_nwb.py (same session from DANDI NWB), build_matrices.py (tensor/rasters/stats/
              region_spike_trains), select_areas.py (Phase 1 co-occurrence)
 src/dynamics/ hmm.py    (Poisson HMM, baseline-biased startprob, CV of K, directedness)
              rslds.py    (OUR exact-EM rSLDS on a PCA latent + sequence statistics)
@@ -88,10 +88,18 @@ src/viz/     style.py (colour-vision-safe palette, stroke(), structured savefig)
 scripts/     run_phase1.py, run_hmm_triplet.py   (batch versions of the notebooks)
              install_ssm_env.sh (builds the ndrh_ssm env), run_rslds_ssm.py (runs INSIDE it)
              validate_hmm_vs_dynamax.py
-notebooks/   00_preprocessing (pipeline entry), 00_data_smoketest (Phase-0 access check +
-             VISUAL DATA-INSPECTION notebook: per-area PSTHs, spike rasters, pynapple plots, decoder),
-             01_hmm_triplet, 02_dimred_msr, 03_rslds_triplet, 04_manifold_dpca_gpfa_rrr (legacy,
-             merged into 02), 05_hmm_summary (write-up), 06_results_visualization
+notebooks/   numbered in RUN ORDER, grouped by the plan's phases (renumbered 2026-11-08):
+             P0 00_data_smoketest (access check + VISUAL DATA-INSPECTION: PSTHs, rasters, decoder),
+                01_preprocessing (pipeline entry) · P1 has no notebook (scripts/run_phase1.py)
+             P2 02_hmm_triplet, 03_rslds_triplet · P3 04_dimred_msr, 05_manifold_dpca_gpfa_rrr (legacy,
+                merged into 04) · P4 (monkey) 06_monkey_data_colleagueD, 07_monkey_hmm, 08_monkey_dimred
+             P5 09_hmm_summary (write-up), 10_results_visualization
+             Worklogs dated before 2026-11-08 use the OLD names (mapping in docs/worklog/README.md).
+             Figure folders follow the same phases: phase0_preproc, phase2_hmm/_rslds*, phase3_*, phase5_viz.
+tests/       pytest suite (2026-11-08): `pytest` = fast, offline, synthetic (~15 s, what CI runs);
+             `pytest -m slow` = full rSLDS ground-truth sweep + the ndrh_ssm bridge (~6 min).
+.github/     workflows/tests.yml — CI runs the fast suite on Python 3.11 with pinned requirements.
+docs/figures/ the 3 small PNGs embedded in the README (the only committed PNGs; see .gitignore).
 docs/project_notes/  static scientific plan
 docs/knowledge/      recorded_areas_IBL_SHIELD.md (areas, full names, functions)
 docs/worklog/        dated session logs (READ THESE for current state)
@@ -124,12 +132,30 @@ Gotchas found by running it (v0.11.3):
 
 ## Current state (keep this section current; details in the latest worklog)
 
-- **Preprocessing is UNIFIED (2026-07-14)** — `src/data/preprocess.py` + `notebooks/00_preprocessing.ipynb`.
+- **⚠️ GIT HISTORY WAS REWRITTEN (2026-11-08)** to remove personal text from early commits
+  (`git filter-repo`; dates, authors and messages preserved, every hash changed). On any OTHER
+  machine with an older clone: **do not `git pull` or push from it.** Re-clone, or run
+  `git fetch origin && git reset --hard origin/main` on a clean tree. Pushing an old clone would
+  put the removed text back on GitHub. See `docs/worklog/2026-11-08_github-cleanup-for-sharing.md`.
+- **Repo prepared for sharing (2026-11-08)**: MIT `LICENSE`, pinned `requirements.txt`, `tests/` +
+  CI, README with key-result figures, notebooks renumbered by phase. Presentation only — no result
+  changed. Regions/session frozen in `config/areas.yaml` (`{VISp, SCm, MRN}`, `5c0c560e`).
+- **NWB route (2026-11-08)**: `src/data/load_nwb.py` streams a session from DANDI:000409 and returns
+  the same `(trials, mask, probe_loads)` as ONE. A documented ALTERNATIVE, not the analysis route:
+  spikes are bit-identical, but the NWB trials table differs slightly, so each route keeps one trial
+  the other drops and movement-aligned tensors shift a few % of spikes. See
+  `docs/knowledge/nwb_vs_one_comparison.md`. pynwb trap: `units["spike_times"]` is the ragged
+  INDEX; the times are `units["spike_times_index"].target`.
+- **Phase 4 — monkey dataset (2026-07-16/17)**: DANDI:000620 (FEF + DMFC, working memory), from a
+  preprocessed pickle shared by a colleague (call them "colleague D." in public files). One session
+  so far: DMFC K=3 maintain-then-switch; FEF looks flat because of across-session DRIFT (a
+  limited-drift block recovers within-trial states). Worklogs 2026-07-16/17.
+- **Preprocessing is UNIFIED (2026-07-14)** — `src/data/preprocess.py` + `notebooks/01_preprocessing.ipynb`.
   Every model now eats the same frozen tensors (`data/processed/*.npz`, config serialised inside).
-  **stimOn + firstMovement alignment, `pre_s` 0.4 s, `post_s` 0.8 s, 40 ms bins (default since
-  2026-07-15), units ≥ 1 Hz**. `pre_s=0.4` because IBL's enforced **quiescence period** is drawn
-  from [0.400, 0.700] s — 0.5 s stepped outside it on 44% of trials. `01_hmm_triplet.ipynb` reads
-  `load_processed(...)`; notebooks 02–04 still build their own tensors and must be pointed at it.
+  **stimOn + firstMovement alignment, `pre_s` 0.3 s (0.4 s until 2026-07-16), `post_s` 0.8 s,
+  40 ms bins (default since 2026-07-15), units ≥ 1 Hz**. `pre_s` sits inside IBL's enforced
+  **quiescence period**, drawn from [0.400, 0.700] s — 0.5 s stepped outside it on 44% of trials. `02_hmm_triplet.ipynb` reads
+  `load_processed(...)`; notebooks 03–05 still build their own tensors and must be pointed at it.
 - **ALL 5 TRIPLET SESSIONS BUILT AT 40 ms (2026-07-15)** — `scripts/build_processed_all.py`
   downloaded + preprocessed every `{VISp,SCm,MRN}` session (5c0c560e 843 tr / 90c61c38 656 /
   111c1762 364 / 90d1e82c 353 / 8a3a0197 290), both alignments. `run_hmm_sessions.py` +
@@ -158,15 +184,15 @@ Gotchas found by running it (v0.11.3):
   cross-validation of K. Motor areas are more directed than visual (SCm .77, MRN .69 vs
   VISp .53). **Treat "CV prefers K=2" with suspicion** — read the CV *curve*, not the
   argmax; if held-out LL is flat across K the argmax is noise. Re-run at `MAX_TRIALS=None`.
-- **`02_dimred_msr.ipynb` is now the CONSOLIDATED dim-red notebook (2026-07-15).** Runs on the
+- **`04_dimred_msr.ipynb` is now the CONSOLIDATED dim-red notebook (2026-07-15).** Runs on the
   **40 ms unified pipeline** (`load_processed`), MSR demoted to a comparison set (kept, not
   adopted). §1–5 = **PCA/dPCA/MDS/Laplacian in 3-D, coloured by time** (all vs MSR-top;
   post-stim + full-window diverging blue=baseline/red=evoked). §6–9 = **04's results merged in**
   (dPCA split, GPFA, RRR, joint manifold), re-run at 40 ms — all reproduce the 50 ms numbers.
-  **Notebook 04 is now a retirement candidate** (only the bin×smoothing sweep + 7-method quality
+  **Notebook 05 is now a retirement candidate** (only the bin×smoothing sweep + 7-method quality
   zoo are unique to it). dPCA maths + the sequence link:
   `docs/knowledge/dPCA_maths_and_the_attractor_sequence.md`.
-- **Phase 3 started (2026-07-13)** — `notebooks/02_dimred_msr.ipynb`: MSR unit selection +
+- **Phase 3 started (2026-07-13)** — `notebooks/04_dimred_msr.ipynb`: MSR unit selection +
   PCA/MDS/t-SNE/UMAP/Isomap/Laplacian/PHATE on the triplet. Two results to carry forward:
   **(a) MSR is not adopted** — where a rate-matched control is actually valid (MRN only),
   the top-MSR half decodes no better than a *random* half; in VISp/SCm the control silently
@@ -188,7 +214,7 @@ Gotchas found by running it (v0.11.3):
     `|λ| ≈ 1`; the `|λ|`-stability test (`run_rslds_lambda_stability.py`) proved it is **>97 %
     reproduced on time-shuffled data** → the **smoother**, not the dynamics. GPFA's finite τ
     (107–283 ms) is the honest timescale (slow but *contracting*). **Notebook-03 Part 6 (flow
-    geometry) was DELETED**; Part 10 (certified dashboard) added; `notebooks/06_results_visualization.ipynb`
+    geometry) was DELETED**; Part 10 (certified dashboard) added; `notebooks/10_results_visualization.ipynb`
     + `src/viz/rslds_anim.py` animate the certified sequence (single-trial GIF + occupancy sweep).
   - ⚠️ **`pre_s` BOOKKEEPING**: all rSLDS results/viz used **pre400** 40 ms tensors; the config
     default is now **pre300** (2026-07-16). Both exist on disk; the `run_rslds_*.py` scripts
@@ -201,7 +227,7 @@ Gotchas found by running it (v0.11.3):
   likelihood you may argmax**. New statistic `order_consistency`: does a reliable *sequence*
   exist, **in either direction** (0.5 = no order, 1.0 = same order every trial) — the
   direction-agnostic complement to the HMM's `forward_fraction`.
-- **Phase 3 geometry (2026-07-13)** — `notebooks/04_manifold_dpca_gpfa_rrr.ipynb`, executed
+- **Phase 3 geometry (2026-07-13)** — `notebooks/05_manifold_dpca_gpfa_rrr.ipynb`, executed
   end-to-end. **dPCA reproduces the project's core prediction**: decision−stimulus variance
   runs **VISp −6.8 → SCm +1.8 → MRN +6.0**, and the condition-independent (time) share falls
   74→64→49% along the axis. Caveat: the balanced design gives only **K=25 trials/cell** (the

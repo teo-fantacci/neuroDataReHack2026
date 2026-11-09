@@ -13,7 +13,7 @@ Puts the Poisson-HMM read-outs for the two datasets side by side, in ONE deliver
 Mouse  : IBL session 5c0c560e, {VISp, SCm, MRN}, stimOn-aligned, pre300 40 ms tensors,
          canonical K = {VISp:3, SCm:4, MRN:3}, baseline-biased startprob (the project default).
 Monkey : DANDI 000620 ses-2022-08-20 (sub-Elgar), {FEF, DMFC}, DELAY-aligned 100 ms tensors,
-         K = {FEF:4, DMFC:3} (stability-scan best K>=3), no startprob bias (notebook 01_HMM_monkey).
+         K = {FEF:4, DMFC:3} (stability-scan best K>=3), no startprob bias (notebook 07_monkey_hmm).
 
 Everything is re-fit here from the frozen tensors so the figures are internally consistent; the
 numbers reproduce results/hmm/hmm_readouts_5c0c560e.csv and results/hmm/monkey_..._readouts.csv.
@@ -54,7 +54,7 @@ N_ITER = 50
 MOUSE_NPZ = ROOT / "data" / "processed" / "5c0c560e__stimOn_pre300_post800_bin40_rate1.npz"
 MOUSE_K = {"VISp": 3, "SCm": 4, "MRN": 3}          # canonical, best_K_per_region.md
 MONKEY_SESSION = "ses-2022-08-20"
-MONKEY_K = {"FEF": 4, "DMFC": 3}                   # stability best K>=3 (notebook 01_HMM_monkey)
+MONKEY_K = {"FEF": 4, "DMFC": 3}                   # stability best K>=3 (notebook 07_monkey_hmm)
 
 # CVD-safe colours: mouse regions keep their project colours; give the monkey areas two
 # unused Okabe-Ito hues (purple / green) so nothing collides on a shared axis.

@@ -28,7 +28,7 @@ shared latent decision dynamics** are realized on **geometrically distinct,
 area-specific manifolds**. A secondary, higher-risk aim is the **functional direction
 of signal flow** between areas (less settled than the anatomy). Framing guardrail:
 *distributed temporal sequences within populations, not a clean anatomical relay.*
-Grounding papers: IBL et al. 2025 (Nature 645:177-189; the dataset); Genkin, Shenoy,
+Grounding papers: IBL et al. 2025 (Nature 645:177-191; the dataset); Genkin, Shenoy,
 Chandrasekaran & Engel 2025 (Nature 645:168-176; NeuralFlow); Langdon, Genkin & Engel
 2023 (Nat Rev Neurosci 24:363-377; the dynamics-vs-geometry distinction).
 
@@ -224,7 +224,7 @@ Full phased checklist and success criteria: master project plan, "Phased plan" a
 ## 10. References
 
 Full categorized list: **running notes** doc. Most-core (all in the human's project
-knowledge unless noted): IBL et al. 2025 (Nature 645:177-189); IBL 2021 (eLife
+knowledge unless noted): IBL et al. 2025 (Nature 645:177-191); IBL 2021 (eLife
 e63711); Genkin/Shenoy/Chandrasekaran/Engel 2025 (Nature 645:168-176); Langdon/Genkin/
 Engel 2023 (Nat Rev Neurosci 24:363-377); Linderman et al. 2017 (AISTATS); Zoltowski/
 Pillow/Linderman 2020 (ICML); Glaser et al. 2020 (NeurIPS); Schneider/Lee/Mathis 2023

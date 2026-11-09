@@ -68,7 +68,7 @@ OUT = ROOT / "results" / "session_recap"
 REGIONS = ["VISp", "SCm", "MRN"]
 K_CANONICAL = {"VISp": 3, "SCm": 4, "MRN": 3}     # readouts.csv canonical K (SCm supports 4)
 K_COMMON = 3                                       # the honest common count (recap Sec 2a)
-SMOOTH_MS_GEOM = 40.0                              # standing geometry smoothing (notebook 02)
+SMOOTH_MS_GEOM = 40.0                              # standing geometry smoothing (notebook 04)
 SMOOTH_MS_RASTER = 60.0                            # display smoothing for the macro raster only
 SEED = 0
 

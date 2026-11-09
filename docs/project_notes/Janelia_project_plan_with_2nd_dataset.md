@@ -1,7 +1,7 @@
 # IBL Brain-Wide Map — Decision Dynamics: Project Plan (Janelia Hackathon)
 
 *Primary dataset (default): IBL DANDI:000409 / "Brain Wide Map" (IBL et al. 2025,
-Nature 645:177-189). Secondary/replication dataset under evaluation: SHIELD
+Nature 645:177-191). Secondary/replication dataset under evaluation: SHIELD
 DANDI:001051 (see "Dataset decision" below). Draft v2. Written to be actionable by
 Claude Code: task breakdown, verified repository links, install commands, a verified
 data-access snippet, and a proposed repository structure. All non-obvious claims are
@@ -486,7 +486,7 @@ ibl-decision-dynamics/
 
 ## References (see project_notes.md for the full categorized list)
 
-Core, in project knowledge: IBL et al. 2025 (Nature 645:177-189); IBL 2021 (eLife
+Core, in project knowledge: IBL et al. 2025 (Nature 645:177-191); IBL 2021 (eLife
 e63711); Genkin/Shenoy/Chandrasekaran/Engel 2025 (Nature 645:168-176); Langdon/
 Genkin/Engel 2023 (Nat Rev Neurosci 24:363-377); Linderman et al. 2017 (AISTATS);
 Zoltowski/Pillow/Linderman 2020 (ICML); Glaser et al. 2020 (NeurIPS); Schneider/Lee/

@@ -2,9 +2,9 @@
 
     python scripts/run_hmm_sessions.py
 
-This is the multi-session version of `notebooks/01_hmm_triplet.ipynb`. It reads the **unified
+This is the multi-session version of `notebooks/02_hmm_triplet.ipynb`. It reads the **unified
 preprocessed tensors** (`data/processed/<eid>__<align>_...npz`, produced by
-`src/data/preprocess.py` / `notebooks/00_preprocessing.ipynb`), so every session is treated
+`src/data/preprocess.py` / `notebooks/01_preprocessing.ipynb`), so every session is treated
 identically and the results are directly comparable.
 
 Why per-session-then-pool, and NOT a pseudo-population
