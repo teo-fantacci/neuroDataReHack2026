@@ -22,6 +22,14 @@ ipykernel==7.3.0
 ONE-api==3.5.2
 # brainwidemap is NOT on PyPI; pulls ibllib/brainbox as dependencies.
 brainwidemap @ git+https://github.com/int-brain-lab/paper-brain-wide-map@118fc36cb3602934466ad2c6087c2b3b441f9f1f
+# brainwidemap does not pin IBL's own libraries. Newer ibl-neuropixel releases moved
+# ibldsp.utils.sync_timestamps and broke `brainwidemap.load_trials_and_mask` (found by CI,
+# 2026-11-09), so the versions that work are pinned here.
+ibllib==4.0.1
+ibl-neuropixel==1.11.3
+iblatlas==1.2.0
+iblutil==1.20.0
+phylib==2.7.0
 
 # ---- Phase 0/2: discrete state sequences ----
 # hmmlearn 0.3.3 provides PoissonHMM, the right emission model for spike counts.
