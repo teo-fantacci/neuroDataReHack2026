@@ -27,10 +27,20 @@ before anything was replaced.
 - none of the removed strings occur anywhere in the new history.
 
 **Consequences.** Every commit hash changed (the one hash quoted in the docs, `fba432f`, is now
-`0c10ece` and was updated). Any other clone must be re-cloned or hard-reset to the new
+`f33e3ed` and was updated). Any other clone must be re-cloned or hard-reset to the new
 `origin/main`, never pushed (see `CLAUDE.md`). GitHub can keep the old commits reachable by their
 old hashes until it garbage-collects them; removing them for certain needs a GitHub Support request
 or deleting and recreating the repository. The repo had no forks, stars or issues at the time.
+**Decision (author, 2026-11-09):** leave them; they are not linked from anywhere and are reachable
+only by someone who already has the old hashes.
+
+**Second pass (2026-11-09).** A full sweep of every tracked file, notebook and commit message, run
+before the first push, found the same health detail once more, in a docstring in
+`src/viz/style.py`. It was reworded in every commit the same way (same verification: dates,
+authors and messages identical; each commit differs only in that file; old wording gone). Hashes
+changed again; the quoted hash above is the current one. Left as is, for the author to decide: the
+commit author e-mail (also quoted in the 2026-07-16 worklog), a grant mention in the
+project notes, and "PhD student (Italy)" in `CLAUDE.md`.
 
 The colleague who shared the monkey data is referred to as **"colleague D."** in all public files;
 their name never reached git history.
